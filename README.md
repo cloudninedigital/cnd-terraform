@@ -1,4 +1,4 @@
-# A collection of terraform templates
+# Definition of Cloud infrastructures for internal use and for clients
 
 # Resources
 ## GCP getting started
@@ -12,3 +12,6 @@
 
 ## Managing infrastructure as Code in Google Cloud
 * [Terraform, Cloud Build, and GitOps](https://cloud.google.com/architecture/managing-infrastructure-as-code)
+
+## Access control for Artifact Registry
+* [Artifact registry access control](https://cloud.google.com/artifact-registry/docs/access-control#terraform)
