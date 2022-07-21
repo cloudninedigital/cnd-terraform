@@ -8,11 +8,11 @@ terraform {
 }
 
 provider "google" {
-  #  credentials = file("<NAME>.json")
+  #  credentials = file(var.credentials_file)
 
-  project = "cloudninedigital-sandbox"
-  region  = "europe-west4"
-  zone    = "europe-west4-c"
+  project = var.project
+  region  = var.region
+  zone    = var.zone
 }
 
 resource "google_compute_network" "vpc_network" {
