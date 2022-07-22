@@ -1,4 +1,4 @@
-# Definition of Cloud infrastructures for internal use and for clients
+# Definition of Cloud infrastructures for internal use
 
 # Resources
 ## GCP getting started
