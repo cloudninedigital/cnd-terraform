@@ -12,6 +12,7 @@
 
 ## Managing infrastructure as Code in Google Cloud
 * [Terraform, Cloud Build, and GitOps](https://cloud.google.com/architecture/managing-infrastructure-as-code)
+* [Google Cloud Terraform Samples](https://github.com/terraform-google-modules/terraform-docs-samples)
 
 ## Access control for Artifact Registry
 * [Artifact registry access control](https://cloud.google.com/artifact-registry/docs/access-control#terraform)
