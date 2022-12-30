@@ -47,6 +47,17 @@ variable "environment" {
   default = {}
 }
 
+variable "trigger_resource" {
+  description = "Name of resource that is supposed to trigger function"
+  type = string
+}
+
+variable "trigger_event_type" {
+  description = "Type of event type the function should trigger on."
+  type = string
+  default = "google.storage.object.finalize"
+}
+
 variable "entry_point" {
   description = "Entry point method of the Cloud function."
   type = string
