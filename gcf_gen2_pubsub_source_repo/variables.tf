@@ -70,3 +70,10 @@ variable "topic" {
   type = string
   default = "gcf_periodic_trigger"
 }
+
+variable "schedule" {
+  description = "The schedule on which to trigger the function."
+  type = string
+  default = "*/2 * * * *"
+
+}

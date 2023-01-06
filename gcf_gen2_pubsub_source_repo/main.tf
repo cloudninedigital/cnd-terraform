@@ -20,6 +20,17 @@ resource "google_pubsub_topic" "topic" {
   name = var.topic
 }
 
+resource "google_cloud_scheduler_job" "job" {
+  name        = "gcf_trigger"
+  description = "A schedule for triggering the function"
+  schedule    = var.schedule
+
+  pubsub_target {
+    topic_name = google_pubsub_topic.topic.id
+    #data       = base64encode("test")
+  }
+}
+
 resource "google_cloudfunctions2_function" "function" {
   name        = var.name
   location    = var.region
