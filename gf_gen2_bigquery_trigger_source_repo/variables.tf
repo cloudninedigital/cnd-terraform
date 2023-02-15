@@ -10,7 +10,7 @@ variable "description" {
 
 variable "region" {
   description = "Region where function is living"
-  default = "europe-west1"
+  default = "europe-west4"
 }
 
 variable "runtime" {
