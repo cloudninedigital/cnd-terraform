@@ -10,6 +10,19 @@ resource "google_project_service" "cloud_functions_api" {
   disable_on_destroy = false
 }
 
+
+resource "google_project_service" "run_api" {
+  project            = var.project
+  service            = "run.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "eventarc_api" {
+  project            = var.project
+  service            = "eventarc.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_project_service" "pubsub_api" {
   project            = var.project
   service            = "pubsub.googleapis.com"

@@ -1,6 +1,6 @@
 module "cgf_bigquery" {
   source = "./modules/gf_gen2_bigquery_trigger_source_repo"
-  name = "name_of_cloud_function"
+  name = var.application_name
   description = <<EOF
   This function will trigger when a bigquery table create or delete has happened
 EOF

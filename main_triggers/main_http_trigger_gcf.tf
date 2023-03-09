@@ -1,6 +1,6 @@
 module "cf_http_trigger_bq_processing" {
   source = "./modules/gf_gen1_http_trigger_source_repo"
-  name = "name_of_cloud_function_http"
+  name = var.application_name
   description = <<EOF
 This function will trigger on new files saved in the trigger bucket
 and process the data, finally inserting it into a BQ dataset
