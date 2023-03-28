@@ -27,7 +27,7 @@ resource "google_project_service" "eventarc" {
 }
 
 resource "google_service_account" "account" {
-  account_id   = "gcf-sa"
+  account_id   = "gcf-exec"
   display_name = "Test Service Account - used for both the cloud function and eventarc trigger in the test"
 }
 
