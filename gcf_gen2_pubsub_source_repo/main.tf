@@ -61,7 +61,7 @@ resource "google_cloud_scheduler_job" "job" {
   name        = "${var.name}_schedule"
   description = "A schedule for triggering the function"
   schedule    = var.schedule
-  region = var.region
+  region      = var.region
 
   pubsub_target {
     topic_name = google_pubsub_topic.topic.id
@@ -73,30 +73,32 @@ resource "google_cloud_scheduler_job" "job" {
   ]
 }
 
+
+
 resource "google_cloudfunctions2_function" "function" {
   name        = var.name
   location    = var.region
   description = var.description
 
   build_config {
-    runtime     = var.runtime
-    entry_point = var.entry_point
+    runtime               = var.runtime
+    entry_point           = var.entry_point
     environment_variables = var.environment
     source {
       repo_source {
-        project_id = var.project
-        repo_name = var.source_repo_name
+        project_id  = var.project
+        repo_name   = var.source_repo_name
         branch_name = var.source_repo_branch
       }
     }
   }
 
   service_config {
-    max_instance_count = 3
-    min_instance_count = 1
-    available_memory   = var.available_memory
-    timeout_seconds    = 60
-    environment_variables = var.environment
+    max_instance_count             = 3
+    min_instance_count             = 1
+    available_memory               = var.available_memory
+    timeout_seconds                = 60
+    environment_variables          = var.environment
     ingress_settings               = "ALLOW_INTERNAL_ONLY"
     all_traffic_on_latest_revision = true
   }
