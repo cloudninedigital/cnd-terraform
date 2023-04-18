@@ -46,7 +46,7 @@ resource "google_cloud_scheduler_job" "job" {
   name        = "${var.name}_schedule"
   description = "A schedule for triggering the function"
   schedule    = var.schedule
-  region = var.function_region
+  region = var.region
 
   pubsub_target {
     topic_name = google_pubsub_topic.topic.id
@@ -87,7 +87,7 @@ resource "google_cloudfunctions2_function" "function" {
   }
 
   event_trigger {
-    trigger_region = var.function_region
+    trigger_region = var.region
     event_type     = "google.cloud.pubsub.topic.v1.messagePublished"
     pubsub_topic   = google_pubsub_topic.topic.id
     retry_policy   = "RETRY_POLICY_DO_NOT_RETRY"

@@ -13,11 +13,6 @@ variable "region" {
   default = "europe-west1"
 }
 
-variable "function_region" {
-  description = "Region where function is living"
-  default = "europe-west1"
-}
-
 variable "runtime" {
   description = "Runtime where function is operating."
   type = string
