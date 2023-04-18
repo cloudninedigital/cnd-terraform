@@ -42,6 +42,21 @@ resource "google_pubsub_topic" "topic" {
   ]
 }
 
+
+data "google_project" "project" {}
+
+resource "google_project_iam_member" "secret_manager_access" {
+  project = var.project
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "token_creator_access" {
+  project = var.project
+  role    = "roles/iam.serviceAccountTokenCreator"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
+
 resource "google_cloud_scheduler_job" "job" {
   name        = "${var.name}_schedule"
   description = "A schedule for triggering the function"
