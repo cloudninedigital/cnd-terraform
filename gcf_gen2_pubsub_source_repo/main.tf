@@ -65,7 +65,7 @@ resource "google_cloud_scheduler_job" "job" {
 
   pubsub_target {
     topic_name = google_pubsub_topic.topic.id
-    data       = base64encode("test")
+    data       = base64encode("{}")
   }
   depends_on = [
     google_project_service.cloud_scheduler_api,
