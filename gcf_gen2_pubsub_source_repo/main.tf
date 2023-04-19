@@ -97,6 +97,7 @@ resource "google_cloudfunctions2_function" "function" {
     max_instance_count             = 3
     min_instance_count             = 1
     available_memory               = var.available_memory
+    available_cpu                  = var.available_cpu
     timeout_seconds                = 60
     environment_variables          = var.environment
     ingress_settings               = "ALLOW_INTERNAL_ONLY"
