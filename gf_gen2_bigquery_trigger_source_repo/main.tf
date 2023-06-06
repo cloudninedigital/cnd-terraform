@@ -2,6 +2,10 @@ data "google_project" "project" {
   project_id = var.project
 }
 
+locals {
+  timestamp  = formatdate("YYMMDDhhmmss", timestamp())
+}
+
 ## Dependency API's that need to be enabled
 
 resource "google_project_service" "cloud_build_api" {
