@@ -9,10 +9,18 @@ EOF
   project = var.project
   entry_point = "main_bigquery_event"
   environment = {
-    project = var.project
-    include_variables = "false"
-    show_all_rows = "false"
-    on_error_continue = "false"
-    exclude_temp_ids = "false"
+    PROJECT=var.project
+    BUCKET_NAME=var.bucket
+    INCLUDE_VARIABLES="false"
+    SHOW_ALL_ROWS="false"
+    ON_ERROR_CONTINUE="false"
+    EXCLUDE_TEMP_IDS="false"
   }
+}
+
+module  "gcs_sync" {
+  source = "./modules/gcs_folder_sync"
+  bucket = var.bucket
+  gcs_bucket_file_path = ""
+  gcs_local_source_path = "../project_name/SQL/sql_scripts"
 }

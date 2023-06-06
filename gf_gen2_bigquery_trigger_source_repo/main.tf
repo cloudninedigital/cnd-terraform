@@ -2,6 +2,8 @@ data "google_project" "project" {
   project_id = var.project
 }
 
+## Dependency API's that need to be enabled
+
 resource "google_project_service" "cloud_build_api" {
   project            = var.project
   service            = "cloudbuild.googleapis.com"
@@ -26,19 +28,24 @@ resource "google_project_service" "eventarc" {
   disable_on_destroy = false
 }
 
-resource "google_service_account" "account" {
-  account_id   = "gcf-exec"
-  display_name = "Test Service Account - used for both the cloud function and eventarc trigger in the test"
-}
+##  Permissions for pubsub service account to handle event-arc events (google managed, so no need to create)
 
-# Permissions for pubsub service account (google managed, so no need to create)
 resource "google_project_iam_member" "token-creating" {
   project = var.project
   role    = "roles/iam.serviceAccountTokenCreator"
   member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
 
-# Permissions on the service account used by the function and Eventarc trigger
+
+## Own service account that creates and runs the cloud function
+resource "google_service_account" "account" {
+  account_id   = "gcf-exec"
+  display_name = "Test Service Account - used for both the cloud function and eventarc trigger in the test"
+}
+
+
+##  Permissions on the service account used by the function and Eventarc trigger
+
 resource "google_project_iam_member" "invoking" {
   project = var.project
   role    = "roles/run.invoker"
@@ -73,8 +80,27 @@ resource "google_project_iam_member" "jobUser" {
   depends_on = [google_project_iam_member.dataEditor]
 }
 
+## Create and upload source zip to special created functions bucket 
+
+data "archive_file" "source" {
+  type        = "zip"
+  source_dir  = "git-function"
+  output_path = "/tmp/git-function-${local.timestamp}.zip"
+}
+
+resource "google_storage_bucket" "bucket" {
+  name     = "${var.project}-functions"
+  location = "EU"
+}
+
+resource "google_storage_bucket_object" "archive" {
+  name   = "terraform-function.zip#${data.archive_file.source.output_md5}"
+  bucket = google_storage_bucket.bucket.name
+  source = data.archive_file.source.output_path
+}
 
 
+## Actual declaration of the cloud function
 
 resource "google_cloudfunctions2_function" "function" {
   name        = var.name
@@ -86,10 +112,9 @@ resource "google_cloudfunctions2_function" "function" {
     entry_point = var.entry_point
     environment_variables = var.environment
     source {
-      repo_source {
-        project_id = var.project
-        repo_name = var.source_repo_name
-        branch_name = var.source_repo_branch
+      storage_source {
+        bucket = google_storage_bucket.bucket.name
+        object = google_storage_bucket_object.archive.name
       }
     }
   }
@@ -123,7 +148,6 @@ resource "google_cloudfunctions2_function" "function" {
       value = "projects/${var.project}/datasets/*/tables/*"
       operator = "match-path-pattern"
     }
-
   }
 
   depends_on = [
