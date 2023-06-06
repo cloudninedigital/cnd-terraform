@@ -4,8 +4,6 @@ module "cgf_bigquery" {
   description = <<EOF
   This function will trigger when a bigquery table create or delete has happened
 EOF
-  source_repo_name = var.source_repo_name
-  source_repo_branch = var.source_repo_branch
   project = var.project
   entry_point = "main_bigquery_event"
   environment = {
