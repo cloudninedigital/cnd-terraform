@@ -8,7 +8,8 @@ EOF
   entry_point = "main_bigquery_event"
   environment = {
     PROJECT=var.project
-    BUCKET_NAME=var.bucket
+    GCP_PROJECT=var.project
+    GCP_BUCKET_NAME=var.bucket
     INCLUDE_VARIABLES="false"
     SHOW_ALL_ROWS="false"
     ON_ERROR_CONTINUE="false"

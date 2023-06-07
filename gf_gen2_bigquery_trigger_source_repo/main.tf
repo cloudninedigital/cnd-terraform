@@ -14,6 +14,7 @@ resource "google_project_service" "cloud_build_api" {
   disable_on_destroy = false
 }
 
+
 resource "google_project_service" "cloud_functions_api" {
   project            = var.project
   service            = "cloudfunctions.googleapis.com"
@@ -43,7 +44,7 @@ resource "google_project_iam_member" "token-creating" {
 
 ## Own service account that creates and runs the cloud function
 resource "google_service_account" "account" {
-  account_id   = "gcf-exec"
+  account_id   = "gcf-exec-automations"
   display_name = "Test Service Account - used for both the cloud function and eventarc trigger in the test"
 }
 
@@ -84,11 +85,20 @@ resource "google_project_iam_member" "jobUser" {
   depends_on = [google_project_iam_member.dataEditor]
 }
 
+resource "google_project_iam_member" "objectViewer" {
+  project = var.project
+  role     = "roles/storage.objectViewer"
+  member   = "serviceAccount:${google_service_account.account.email}"
+  depends_on = [google_project_iam_member.jobUser]
+}
+
+
+
 ## Create and upload source zip to special created functions bucket 
 
 data "archive_file" "source" {
   type        = "zip"
-  source_dir  = "git-function"
+  source_dir  = "${path.root}/.."
   output_path = "/tmp/git-function-${local.timestamp}.zip"
 }
 
@@ -163,6 +173,7 @@ resource "google_cloudfunctions2_function" "function" {
     google_project_iam_member.artifactregistry-reader,
     google_project_iam_member.token-creating,
     google_project_iam_member.dataEditor,
-    google_project_iam_member.jobUser
+    google_project_iam_member.jobUser,
+    google_project_iam_member.objectViewer
   ]
 }
