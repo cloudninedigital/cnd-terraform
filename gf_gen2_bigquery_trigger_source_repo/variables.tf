@@ -8,6 +8,11 @@ variable "description" {
   type = string
 }
 
+variable "project" {
+  description = "Project ID."
+  type = string
+}
+
 variable "region" {
   description = "Region where function is living"
   default = "europe-west4"
@@ -19,21 +24,16 @@ variable "runtime" {
   default = "python39"
 }
 
-variable "source_repo_name" {
-  description = "Name of the Cloud Repository that hosts the function definition."
-  type = string
-}
+# variable "source_repo_name" {
+#   description = "Name of the Cloud Repository that hosts the function definition."
+#   type = string
+# }
 
-variable "source_repo_branch" {
-  description = "Branch name containing code to be deployed."
-  type = string
-  default = "main"
-}
-
-variable "project" {
-  description = "Project ID."
-  type = string
-}
+# variable "source_repo_branch" {
+#   description = "Branch name containing code to be deployed."
+#   type = string
+#   default = "main"
+# }
 
 variable "available_memory" {
   description = "The amount of memory available for a function. See https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/cloudfunctions2_function"
@@ -52,6 +52,8 @@ variable "environment" {
   type = map(string)
   default = {}
 }
+
+
 
 variable "entry_point" {
   description = "Entry point method of the Cloud function."
@@ -77,3 +79,4 @@ variable "schedule" {
   default = "*/2 * * * *"
 
 }
+
