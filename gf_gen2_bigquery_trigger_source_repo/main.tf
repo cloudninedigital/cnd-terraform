@@ -33,6 +33,7 @@ resource "google_project_service" "eventarc" {
   disable_on_destroy = false
 }
 
+
 ##  Permissions for pubsub service account to handle event-arc events (google managed, so no need to create)
 
 resource "google_project_iam_member" "token-creating" {

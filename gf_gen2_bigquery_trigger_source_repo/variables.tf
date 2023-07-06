@@ -21,7 +21,7 @@ variable "region" {
 variable "runtime" {
   description = "Runtime where function is operating."
   type = string
-  default = "python310"
+  default = "python39"
 }
 
 # variable "source_repo_name" {
