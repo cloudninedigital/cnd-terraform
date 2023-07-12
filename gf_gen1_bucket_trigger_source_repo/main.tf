@@ -25,8 +25,8 @@ resource "google_cloudfunctions_function" "gcs_triggered_function" {
   # This should be done in another way, it seems clunky
   environment_variables = var.environment
   event_trigger {
-        event_type = var.trigger_event_type
-        resource = var.trigger_resource
+    event_type = var.trigger_event_type
+    resource   = var.trigger_resource
   }
 
   depends_on = [google_project_service.cloud_build_api, google_project_service.cloud_functions_api]

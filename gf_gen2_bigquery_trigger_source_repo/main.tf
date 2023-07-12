@@ -33,7 +33,6 @@ resource "google_project_service" "eventarc" {
   disable_on_destroy = false
 }
 
-
 ##  Permissions for pubsub service account to handle event-arc events (google managed, so no need to create)
 
 resource "google_project_iam_member" "token-creating" {
@@ -59,37 +58,37 @@ resource "google_project_iam_member" "invoking" {
 }
 
 resource "google_project_iam_member" "event-receiving" {
-  project = var.project
-  role    = "roles/eventarc.eventReceiver"
-  member  = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/eventarc.eventReceiver"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.invoking]
 }
 
 resource "google_project_iam_member" "artifactregistry-reader" {
-  project = var.project
-  role     = "roles/artifactregistry.reader"
-  member   = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/artifactregistry.reader"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.event-receiving]
 }
 
 resource "google_project_iam_member" "dataEditor" {
-  project = var.project
-  role     = "roles/bigquery.dataEditor"
-  member   = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/bigquery.dataEditor"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.artifactregistry-reader]
 }
 
 resource "google_project_iam_member" "jobUser" {
-  project = var.project
-  role     = "roles/bigquery.jobUser"
-  member   = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/bigquery.jobUser"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.dataEditor]
 }
 
 resource "google_project_iam_member" "objectViewer" {
-  project = var.project
-  role     = "roles/storage.objectViewer"
-  member   = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/storage.objectViewer"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.jobUser]
 }
 
@@ -123,8 +122,8 @@ resource "google_cloudfunctions2_function" "function" {
   description = var.description
 
   build_config {
-    runtime     = var.runtime
-    entry_point = var.entry_point
+    runtime               = var.runtime
+    entry_point           = var.entry_point
     environment_variables = var.environment
     source {
       storage_source {
@@ -135,33 +134,33 @@ resource "google_cloudfunctions2_function" "function" {
   }
 
   service_config {
-    max_instance_count = 3
-    min_instance_count = 1
-    available_memory   = var.available_memory
-    timeout_seconds    = 60
-    environment_variables = var.environment
+    max_instance_count             = 3
+    min_instance_count             = 1
+    available_memory               = var.available_memory
+    timeout_seconds                = 60
+    environment_variables          = var.environment
     ingress_settings               = "ALLOW_INTERNAL_ONLY"
     all_traffic_on_latest_revision = true
-    service_account_email=google_service_account.account.email
+    service_account_email          = google_service_account.account.email
   }
 
   event_trigger {
-    trigger_region = var.region
-    service_account_email=google_service_account.account.email
-    retry_policy   = "RETRY_POLICY_RETRY"
-    event_type     = "google.cloud.audit.log.v1.written"
+    trigger_region        = var.region
+    service_account_email = google_service_account.account.email
+    retry_policy          = "RETRY_POLICY_RETRY"
+    event_type            = "google.cloud.audit.log.v1.written"
     event_filters {
       attribute = "serviceName"
-      value = "bigquery.googleapis.com"
+      value     = "bigquery.googleapis.com"
     }
     event_filters {
       attribute = "methodName"
-      value = "google.cloud.bigquery.v2.JobService.InsertJob"
+      value     = "google.cloud.bigquery.v2.JobService.InsertJob"
     }
     event_filters {
       attribute = "resourceName"
-      value = "projects/${var.project}/datasets/*/tables/*"
-      operator = "match-path-pattern"
+      value     = "projects/${var.project}/datasets/*/tables/*"
+      operator  = "match-path-pattern"
     }
   }
 

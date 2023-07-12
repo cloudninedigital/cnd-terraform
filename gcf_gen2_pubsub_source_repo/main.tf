@@ -129,7 +129,7 @@ resource "google_cloudfunctions2_function" "function" {
   depends_on = [
     google_project_service.cloud_build_api,
     google_project_service.cloud_functions_api,
-    google_project_service.pubsub_api,
-    google_project_service.artifactregistry_api,
+    google_pubsub_topic.topic,
+    google_project_service.artifact_registry_api
   ]
 }

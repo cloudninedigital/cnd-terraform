@@ -24,7 +24,7 @@ resource "google_cloudfunctions_function" "gcs_triggered_function" {
   max_instances = var.max_instances
   # This should be done in another way, it seems clunky
   environment_variables = var.environment
-  trigger_http = true
+  trigger_http          = true
 
   depends_on = [google_project_service.cloud_build_api, google_project_service.cloud_functions_api]
 }

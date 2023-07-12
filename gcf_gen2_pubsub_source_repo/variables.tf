@@ -9,14 +9,19 @@ variable "description" {
 }
 
 variable "region" {
-  description = "Region where function is living"
+  description = "Region where function is living."
+  default     = "europe-west1"
+}
+
+variable "function_region" {
+  description = "Region where function is living."
   default     = "europe-west1"
 }
 
 variable "runtime" {
   description = "Runtime where function is operating."
   type        = string
-  default     = "python39"
+  default     = "python310"
 }
 
 variable "source_repo_name" {
@@ -41,15 +46,8 @@ variable "available_memory" {
   default     = "2G"
 }
 
-
-variable "available_cpu" {
-  description = "The amount of vCPUs available for a function. See https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/cloudfunctions2_function"
-  type        = string
-  default     = "1"
-}
-
 variable "max_instances" {
-  description = "Amount of instances of this function allowed to run simultaneously"
+  description = "Amount of instances of this function allowed to run simultaneously."
   type        = number
   default     = 10
 }
