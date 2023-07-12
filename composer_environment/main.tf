@@ -13,7 +13,7 @@ resource "google_project_service" "composer" {
 }
 
 resource "google_service_account" "account" {
-  account_id   = "composer-env-account"
+  account_id   = "composer-${var.stage}-account"
   display_name = "Test Service Account for Composer Environment"
 }
 
@@ -46,8 +46,8 @@ resource "google_service_account_iam_member" "custom_service_account" {
 }
 
 resource "google_composer_environment" "test" {
-  name   = var.name
-  region = var.region
+  name    = "${var.name}-${var.stage}"
+  region  = var.region
   project = var.project
   config {
 

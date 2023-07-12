@@ -45,7 +45,7 @@ resource "google_project_iam_member" "token-creating" {
 
 ## Own service account that creates and runs the cloud function
 resource "google_service_account" "account" {
-  account_id   = "gcf-exec-automations"
+  account_id   = "gcf-exec-automations-${var.stage}"
   display_name = "Test Service Account - used for both the cloud function and eventarc trigger in the test"
 }
 
@@ -118,7 +118,7 @@ resource "google_storage_bucket_object" "archive" {
 ## Actual declaration of the cloud function
 
 resource "google_cloudfunctions2_function" "function" {
-  name        = var.name
+  name        = "${var.name}-${var.stage}"
   location    = var.region
   description = var.description
 

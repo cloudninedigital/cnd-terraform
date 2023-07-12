@@ -35,13 +35,38 @@ resource "google_project_service" "pubsub_api" {
 }
 
 resource "google_pubsub_topic" "topic" {
-  name = "${var.name}_trigger_topic"
+  name = "${var.name}_${var.stage}_trigger_topic"
 
   depends_on = [
     google_project_service.pubsub_api
   ]
 }
 
+resource "google_cloud_scheduler_job" "job" {
+  # Deploy schedulers only if in production
+  count       = var.stage == "prd" ? 1 : 0
+  name        = "${var.name}_${var.stage}_scheduler"
+  description = "A schedule for triggering the function"
+  schedule    = var.schedule
+  region      = var.function_region
+
+  pubsub_target {
+    topic_name = google_pubsub_topic.topic.id
+    data       = base64encode("test")
+  }
+  depends_on = [
+    google_project_service.scheduler_api,
+    google_pubsub_topic.topic
+  ]
+}
+
+
+module "source_code" {
+  source   = "../gcs_source"
+  project  = var.project
+  stage    = var.stage
+  app_name = var.name
+}
 
 data "google_project" "project" {}
 
@@ -57,26 +82,16 @@ resource "google_project_iam_member" "token_creator_access" {
   member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
 
-resource "google_cloud_scheduler_job" "job" {
-  name        = "${var.name}_schedule"
-  description = "A schedule for triggering the function"
-  schedule    = var.schedule
-  region      = var.region
-
-  pubsub_target {
-    topic_name = google_pubsub_topic.topic.id
-    data       = base64encode("{}")
-  }
-  depends_on = [
-    google_project_service.cloud_scheduler_api,
-    google_pubsub_topic.topic
-  ]
+resource "google_project_iam_member" "token_creator_access_ce" {
+  project = var.project
+  role    = "roles/iam.serviceAccountTokenCreator"
+  member  = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
 }
 
 
 
 resource "google_cloudfunctions2_function" "function" {
-  name        = var.name
+  name        = "${var.name}_${var.stage}_function"
   location    = var.region
   description = var.description
 
