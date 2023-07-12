@@ -15,3 +15,13 @@ variable "gcs_bucket_file_path" {
   type        = string
   default     = "dags/"
 }
+
+variable "region" {
+  description = "Region where function is living."
+  default     = "europe-west1"
+}
+
+variable "stage" {
+  description = "The stage of the pipeline, either 'dev', 'prd' or 'stg'."
+  type        = string
+}

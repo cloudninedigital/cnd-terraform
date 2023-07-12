@@ -58,3 +58,8 @@ variable "timeout" {
   type        = number
   default     = 540
 }
+
+variable "stage" {
+  description = "Stage of the Cloud Function. Can be dev, stg or prd."
+  type        = string
+}

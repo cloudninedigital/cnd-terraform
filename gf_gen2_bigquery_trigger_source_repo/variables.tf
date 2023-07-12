@@ -56,8 +56,7 @@ variable "timeout" {
   default     = 540
 }
 
-variable "topic" {
-  description = "Name of Pub/Sub topic to create as trigger"
-  type = string
-  default = "gcf_periodic_trigger"
+variable "stage" {
+  description = "Stage of the function. Can be dev, stg or prd."
+  type        = string
 }

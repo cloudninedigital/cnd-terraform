@@ -9,4 +9,5 @@ module "composer_environment" {
   source  = "./modules/composer_environment"
   name    = "fillinyourname"
   project = var.project
+  stage   = terraform.workspace
 }

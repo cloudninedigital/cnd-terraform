@@ -12,4 +12,6 @@ EOF
     ORDERS_FOLDER   = google_storage_bucket_object.orders_folder.name
     ORDERS_BQ_TABLE = "${google_bigquery_table.orders_table.project}.${google_bigquery_table.orders_table.dataset_id}.${google_bigquery_table.orders_table.table_id}"
   }
+
+  stage = terraform.workspace
 }

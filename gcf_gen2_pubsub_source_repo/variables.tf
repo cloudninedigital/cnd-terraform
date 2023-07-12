@@ -76,3 +76,8 @@ variable "schedule" {
   default     = "*/2 * * * *"
 
 }
+
+variable "stage" {
+  description = "Stage of deployment."
+  type        = string
+}

@@ -1,5 +1,5 @@
 resource "google_storage_bucket" "landing_bucket" {
-  name          = "${var.project}-my-processing-bucket-${var.region}"
+  name          = "${var.project}-my-processing-bucket-${var.region}-${terraform.workspace}"
   location      = var.region
   storage_class = "STANDARD"
   versioning {
@@ -22,4 +22,6 @@ EOF
   environment = {
     TARGET_BQ_TABLE = "${google_bigquery_table.target_table.project}.${google_bigquery_table.target_table.dataset_id}.${google_bigquery_table.target_table.table_id}"
   }
+
+  stage = terraform.workspace
 }

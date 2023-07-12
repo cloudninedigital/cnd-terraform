@@ -13,4 +13,6 @@ EOF
     ORDERS_BQ_TABLE = "${google_bigquery_table.orders_table.project}.${google_bigquery_table.orders_table.dataset_id}.${google_bigquery_table.orders_table.table_id}"
   }
   schedule = "*/2 * * * *"
+
+  stage = terraform.workspace
 }
