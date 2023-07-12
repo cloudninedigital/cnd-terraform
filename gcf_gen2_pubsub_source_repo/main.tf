@@ -100,10 +100,9 @@ resource "google_cloudfunctions2_function" "function" {
     entry_point           = var.entry_point
     environment_variables = var.environment
     source {
-      repo_source {
-        project_id  = var.project
-        repo_name   = var.source_repo_name
-        branch_name = var.source_repo_branch
+      storage_source {
+        bucket = module.source_code.bucket_name
+        object = module.source_code.bucket_object_name
       }
     }
   }

@@ -2,10 +2,6 @@ data "google_project" "project" {
   project_id = var.project
 }
 
-locals {
-  timestamp  = formatdate("YYMMDDhhmmss", timestamp())
-}
-
 ## Dependency API's that need to be enabled
 
 resource "google_project_service" "cloud_build_api" {
@@ -96,21 +92,11 @@ resource "google_project_iam_member" "objectViewer" {
 
 ## Create and upload source zip to special created functions bucket 
 
-data "archive_file" "source" {
-  type        = "zip"
-  source_dir  = "${path.root}/.."
-  output_path = "/tmp/git-function-${local.timestamp}.zip"
-}
-
-resource "google_storage_bucket" "bucket" {
-  name     = "${var.project}-functions"
-  location = "EU"
-}
-
-resource "google_storage_bucket_object" "archive" {
-  name   = "terraform-function.zip#${data.archive_file.source.output_md5}"
-  bucket = google_storage_bucket.bucket.name
-  source = data.archive_file.source.output_path
+module "source_code" {
+  source   = "../gcs_source"
+  project  = var.project
+  stage    = var.stage
+  app_name = var.name
 }
 
 
@@ -127,8 +113,8 @@ resource "google_cloudfunctions2_function" "function" {
     environment_variables = var.environment
     source {
       storage_source {
-        bucket = google_storage_bucket.bucket.name
-        object = google_storage_bucket_object.archive.name
+        bucket = module.source_code.bucket_name
+        object = module.source_code.bucket_object_name
       }
     }
   }
