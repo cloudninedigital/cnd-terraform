@@ -34,6 +34,18 @@ resource "google_project_service" "pubsub_api" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "scheduler_api" {
+  project            = var.project
+  service            = "cloudscheduler.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "artifact_registry_api" {
+  project            = var.project
+  service            = "artifactregistry.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_pubsub_topic" "topic" {
   name = "${var.name}_${var.stage}_trigger_topic"
 
@@ -88,7 +100,17 @@ resource "google_project_iam_member" "token_creator_access_ce" {
   member  = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
 }
 
+resource "google_project_iam_member" "run_invoker_access" {
+  project = var.project
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
 
+resource "google_project_iam_member" "run_invoker_access_ce" {
+  project = var.project
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
 
 resource "google_cloudfunctions2_function" "function" {
   name        = "${var.name}_${var.stage}_function"
