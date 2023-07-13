@@ -14,6 +14,7 @@ EOF
     SHOW_ALL_ROWS     = "false"
     ON_ERROR_CONTINUE = "false"
     EXCLUDE_TEMP_IDS  = "false"
+    ENVIRONMENT        = terraform.workspace
   }
   stage = terraform.workspace
 }
