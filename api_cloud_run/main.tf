@@ -1,6 +1,7 @@
 resource "google_cloud_run_v2_service" "api_server" {
   name     = var.name
   location = var.region
+  project = var.project
   ingress = "INGRESS_TRAFFIC_ALL"
 
   template {

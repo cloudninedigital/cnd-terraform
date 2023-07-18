@@ -12,6 +12,7 @@ resource "google_secret_manager_secret_iam_member" "secret-access" {
 resource "google_cloud_run_v2_service" "tagging_server" {
   name     = var.tagging_server_name
   location = var.region
+  project = var.project
   ingress = "INGRESS_TRAFFIC_ALL"
 
   template {
