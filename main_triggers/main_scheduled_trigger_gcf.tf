@@ -1,6 +1,6 @@
 module "cgf_pubsub" {
   source             = "./modules/gcf_gen2_pubsub_source_repo"
-  name               = var.application_name
+  name               = "${var.application_name}-${terraform.workspace}"
   description        = <<EOF
   This function will trigger when a new pubsub message is published.
 EOF
@@ -14,5 +14,5 @@ EOF
   }
   schedule = "*/2 * * * *"
 
-  stage = terraform.workspace
+  instantiate_scheduler = (terraform.workspace == "prd")
 }

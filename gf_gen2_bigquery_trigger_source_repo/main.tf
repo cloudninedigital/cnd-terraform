@@ -40,7 +40,7 @@ resource "google_project_iam_member" "token-creating" {
 
 ## Own service account that creates and runs the cloud function
 resource "google_service_account" "account" {
-  account_id   = "gcf-exec-automations-${var.stage}"
+  account_id   = "${var.name}-service-account"
   display_name = "Test Service Account - used for both the cloud function and eventarc trigger in the test"
 }
 
@@ -95,7 +95,6 @@ resource "google_project_iam_member" "objectViewer" {
 module "source_code" {
   source   = "../gcs_source"
   project  = var.project
-  stage    = var.stage
   app_name = var.name
 }
 
@@ -103,7 +102,7 @@ module "source_code" {
 ## Actual declaration of the cloud function
 
 resource "google_cloudfunctions2_function" "function" {
-  name        = "${var.name}-${var.stage}"
+  name        = var.name
   location    = var.region
   description = var.description
 

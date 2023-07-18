@@ -47,7 +47,7 @@ resource "google_project_service" "artifact_registry_api" {
 }
 
 resource "google_pubsub_topic" "topic" {
-  name = "${var.name}_${var.stage}_trigger_topic"
+  name = "${var.name}_trigger_topic"
 
   depends_on = [
     google_project_service.pubsub_api
@@ -56,8 +56,8 @@ resource "google_pubsub_topic" "topic" {
 
 resource "google_cloud_scheduler_job" "job" {
   # Deploy schedulers only if in production
-  count       = var.stage == "prd" ? 1 : 0
-  name        = "${var.name}_${var.stage}_scheduler"
+  count       = var.instantiate_scheduler ? 1 : 0
+  name        = "${var.name}_scheduler"
   description = "A schedule for triggering the function"
   schedule    = var.schedule
   region      = var.function_region
@@ -76,7 +76,6 @@ resource "google_cloud_scheduler_job" "job" {
 module "source_code" {
   source   = "../gcs_source"
   project  = var.project
-  stage    = var.stage
   app_name = var.name
 }
 
@@ -113,7 +112,7 @@ resource "google_project_iam_member" "run_invoker_access_ce" {
 }
 
 resource "google_cloudfunctions2_function" "function" {
-  name        = "${var.name}_${var.stage}_function"
+  name        = "${var.name}_function"
   location    = var.region
   description = var.description
 

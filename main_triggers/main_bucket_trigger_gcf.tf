@@ -10,7 +10,7 @@ resource "google_storage_bucket" "landing_bucket" {
 
 module "cf_gcs_to_bq" {
   source           = "./modules/gf_gen1_bucket_trigger_source_repo"
-  name             = var.application_name
+  name             = "${var.application_name}-${terraform.workspace}"
   description      = <<EOF
 This function will trigger on new files saved in the trigger bucket
 and process the data, finally inserting it into a BQ dataset
@@ -22,6 +22,4 @@ EOF
   environment = {
     TARGET_BQ_TABLE = "${google_bigquery_table.target_table.project}.${google_bigquery_table.target_table.dataset_id}.${google_bigquery_table.target_table.table_id}"
   }
-
-  stage = terraform.workspace
 }

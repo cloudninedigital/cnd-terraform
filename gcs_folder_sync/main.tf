@@ -1,5 +1,5 @@
 resource "google_storage_bucket" "bucket" {
-  name     = "${var.bucket}-${var.stage}"
+  name     = var.name
   location = var.region
 }
 

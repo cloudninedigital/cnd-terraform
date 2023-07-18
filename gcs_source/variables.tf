@@ -12,8 +12,3 @@ variable "project" {
   description = "Project ID."
   type        = string
 }
-
-variable "stage" {
-  description = "Stage of deployment."
-  type        = string
-}

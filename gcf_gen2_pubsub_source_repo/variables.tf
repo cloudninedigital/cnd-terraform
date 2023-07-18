@@ -77,7 +77,8 @@ variable "schedule" {
 
 }
 
-variable "stage" {
-  description = "Stage of deployment."
-  type        = string
+variable "instantiate_scheduler" {
+  description = "Whether to instantiate scheduler or not."
+  type        = bool
+  default     = true
 }

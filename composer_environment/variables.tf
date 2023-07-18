@@ -80,9 +80,3 @@ variable "environment_size" {
   type        = string
   default     = "ENVIRONMENT_SIZE_SMALL"
 }
-
-variable "stage" {
-  description = "Stage of environment."
-  type        = string
-  default     = "dev"
-}

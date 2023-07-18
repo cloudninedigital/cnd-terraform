@@ -1,5 +1,5 @@
-variable "bucket" {
-  description = "Bucket name. It will be appended with the stage name."
+variable "name" {
+  description = "Bucket name."
   type        = string
 }
 
@@ -19,9 +19,4 @@ variable "gcs_bucket_file_path" {
 variable "region" {
   description = "Region where function is living."
   default     = "europe-west1"
-}
-
-variable "stage" {
-  description = "The stage of the pipeline, either 'dev', 'prd' or 'stg'."
-  type        = string
 }
