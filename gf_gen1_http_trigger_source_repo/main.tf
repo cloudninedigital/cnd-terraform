@@ -10,6 +10,12 @@ resource "google_project_service" "cloud_functions_api" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "artifact_registry_api" {
+  project            = var.project
+  service            = "artifactregistry.googleapis.com"
+  disable_on_destroy = false
+}
+
 module "source_code" {
   source   = "../gcs_source"
   project  = var.project
