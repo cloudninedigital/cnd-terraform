@@ -22,6 +22,7 @@ module "source_code" {
   app_name = var.name
 }
 
+<<<<<<< HEAD
 resource "google_cloudfunctions_function" "gcs_triggered_function" {
   name                  = var.name
   description           = var.description
@@ -36,6 +37,35 @@ resource "google_cloudfunctions_function" "gcs_triggered_function" {
   # This should be done in another way, it seems clunky
   environment_variables = var.environment
   trigger_http          = true
+=======
+resource "google_cloudfunctions2_function" "function" {
+  name        = var.name
+  location    = var.region
+  description = var.description
+  project = var.project
+  
+  build_config {
+    runtime     = var.runtime
+    entry_point = var.entry_point
+    environment_variables = var.environment
+    source {
+      storage_source {
+        bucket = module.source_code.bucket_name
+        object = module.source_code.bucket_object_name
+      }
+    }
+  }
+
+  service_config {
+    max_instance_count = var.max_instances
+    min_instance_count = 1
+    available_memory   = var.available_memory_mb
+    timeout_seconds    = var.timeout
+    environment_variables = var.environment
+    all_traffic_on_latest_revision = true
+  }
+>>>>>>> acb7435 (workflow variants added)
 
   depends_on = [google_project_service.cloud_build_api, google_project_service.cloud_functions_api]
+
 }

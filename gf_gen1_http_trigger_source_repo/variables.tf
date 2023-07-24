@@ -13,26 +13,22 @@ variable "region" {
   default     = "europe-west1"
 }
 
-variable "runtime" {
-  description = "Runtime where function is operating."
-  type        = string
-  default     = "python310"
-}
-
-variable "source_repo_name" {
-  description = "Name of the Cloud Repository that hosts the function definition."
-  type        = string
-}
 
 variable "project" {
   description = "Project ID."
   type        = string
 }
 
+variable "runtime" {
+  description = "Runtime where function is operating."
+  type        = string
+  default     = "python310"
+}
+
 variable "available_memory_mb" {
   description = "Amount of memory available in MB."
-  type        = number
-  default     = 2048
+  type        = string
+  default     = "512Mi"
 }
 
 variable "max_instances" {
