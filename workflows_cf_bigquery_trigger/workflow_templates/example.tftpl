@@ -22,7 +22,7 @@
             "logStep1": {
               "call": "sys.log",
               "args": {
-                "text": "First step executed with return value $${CloudFunctionOneReturnValue.body}",
+                "text": "$${\"First step executed with return value \" + CloudFunctionOneReturnValue.body }",
                 "severity": "INFO"
               }
             }
@@ -58,7 +58,7 @@
             "logStep2": {
               "call": "sys.log",
               "args": {
-                "text": "Second step executed with return value $${CloudFunctionTwoReturnValue.body}",
+                "text": "$${\"Second step executed with return value \" + CloudFunctionTwoReturnValue.body}",
                 "severity": "INFO"
               }
             }
