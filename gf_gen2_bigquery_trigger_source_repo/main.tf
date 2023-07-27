@@ -2,10 +2,6 @@ data "google_project" "project" {
   project_id = var.project
 }
 
-locals {
-  timestamp  = formatdate("YYMMDDhhmmss", timestamp())
-}
-
 ## Dependency API's that need to be enabled
 
 resource "google_project_service" "cloud_build_api" {
@@ -21,6 +17,12 @@ resource "google_project_service" "cloud_functions_api" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "artifact_registry_api" {
+  project            = var.project
+  service            = "artifactregistry.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_project_service" "run" {
   provider           = google-beta
   service            = "run.googleapis.com"
@@ -33,7 +35,6 @@ resource "google_project_service" "eventarc" {
   disable_on_destroy = false
 }
 
-
 ##  Permissions for pubsub service account to handle event-arc events (google managed, so no need to create)
 
 resource "google_project_iam_member" "token-creating" {
@@ -45,7 +46,7 @@ resource "google_project_iam_member" "token-creating" {
 
 ## Own service account that creates and runs the cloud function
 resource "google_service_account" "account" {
-  account_id   = "gcf-exec-automations"
+  account_id   = "${var.name}-service-account"
   display_name = "Test Service Account - used for both the cloud function and eventarc trigger in the test"
 }
 
@@ -59,37 +60,37 @@ resource "google_project_iam_member" "invoking" {
 }
 
 resource "google_project_iam_member" "event-receiving" {
-  project = var.project
-  role    = "roles/eventarc.eventReceiver"
-  member  = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/eventarc.eventReceiver"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.invoking]
 }
 
 resource "google_project_iam_member" "artifactregistry-reader" {
-  project = var.project
-  role     = "roles/artifactregistry.reader"
-  member   = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/artifactregistry.reader"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.event-receiving]
 }
 
 resource "google_project_iam_member" "dataEditor" {
-  project = var.project
-  role     = "roles/bigquery.dataEditor"
-  member   = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/bigquery.dataEditor"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.artifactregistry-reader]
 }
 
 resource "google_project_iam_member" "jobUser" {
-  project = var.project
-  role     = "roles/bigquery.jobUser"
-  member   = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/bigquery.jobUser"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.dataEditor]
 }
 
 resource "google_project_iam_member" "objectViewer" {
-  project = var.project
-  role     = "roles/storage.objectViewer"
-  member   = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/storage.objectViewer"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.jobUser]
 }
 
@@ -97,21 +98,10 @@ resource "google_project_iam_member" "objectViewer" {
 
 ## Create and upload source zip to special created functions bucket 
 
-data "archive_file" "source" {
-  type        = "zip"
-  source_dir  = "${path.root}/.."
-  output_path = "/tmp/git-function-${local.timestamp}.zip"
-}
-
-resource "google_storage_bucket" "bucket" {
-  name     = "${var.project}-functions"
-  location = "EU"
-}
-
-resource "google_storage_bucket_object" "archive" {
-  name   = "terraform-function.zip#${data.archive_file.source.output_md5}"
-  bucket = google_storage_bucket.bucket.name
-  source = data.archive_file.source.output_path
+module "source_code" {
+  source   = "../gcs_source"
+  project  = var.project
+  app_name = var.name
 }
 
 
@@ -123,45 +113,45 @@ resource "google_cloudfunctions2_function" "function" {
   description = var.description
 
   build_config {
-    runtime     = var.runtime
-    entry_point = var.entry_point
+    runtime               = var.runtime
+    entry_point           = var.entry_point
     environment_variables = var.environment
     source {
       storage_source {
-        bucket = google_storage_bucket.bucket.name
-        object = google_storage_bucket_object.archive.name
+        bucket = module.source_code.bucket_name
+        object = module.source_code.bucket_object_name
       }
     }
   }
 
   service_config {
-    max_instance_count = 3
-    min_instance_count = 1
-    available_memory   = var.available_memory
-    timeout_seconds    = 60
-    environment_variables = var.environment
+    max_instance_count             = 3
+    min_instance_count             = 1
+    available_memory               = var.available_memory
+    timeout_seconds                = 60
+    environment_variables          = var.environment
     ingress_settings               = "ALLOW_INTERNAL_ONLY"
     all_traffic_on_latest_revision = true
-    service_account_email=google_service_account.account.email
+    service_account_email          = google_service_account.account.email
   }
 
   event_trigger {
-    trigger_region = var.region
-    service_account_email=google_service_account.account.email
-    retry_policy   = "RETRY_POLICY_RETRY"
-    event_type     = "google.cloud.audit.log.v1.written"
+    trigger_region        = var.region
+    service_account_email = google_service_account.account.email
+    retry_policy          = "RETRY_POLICY_RETRY"
+    event_type            = "google.cloud.audit.log.v1.written"
     event_filters {
       attribute = "serviceName"
-      value = "bigquery.googleapis.com"
+      value     = "bigquery.googleapis.com"
     }
     event_filters {
       attribute = "methodName"
-      value = "google.cloud.bigquery.v2.JobService.InsertJob"
+      value     = "google.cloud.bigquery.v2.JobService.InsertJob"
     }
     event_filters {
       attribute = "resourceName"
-      value = "projects/${var.project}/datasets/*/tables/*"
-      operator = "match-path-pattern"
+      value     = "projects/${var.project}/datasets/*/tables/*"
+      operator  = "match-path-pattern"
     }
   }
 

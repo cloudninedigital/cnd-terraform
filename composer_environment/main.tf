@@ -13,7 +13,7 @@ resource "google_project_service" "composer" {
 }
 
 resource "google_service_account" "account" {
-  account_id   = "composer-env-account"
+  account_id   = "${var.name}-composer-account"
   display_name = "Test Service Account for Composer Environment"
 }
 
@@ -24,30 +24,30 @@ resource "google_project_iam_member" "composer-worker" {
 }
 
 resource "google_project_iam_member" "dataEditor" {
-  project = var.project
-  role     = "roles/bigquery.dataEditor"
-  member   = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/bigquery.dataEditor"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.composer-worker]
 }
 
 resource "google_project_iam_member" "jobUser" {
-  project = var.project
-  role     = "roles/bigquery.jobUser"
-  member   = "serviceAccount:${google_service_account.account.email}"
+  project    = var.project
+  role       = "roles/bigquery.jobUser"
+  member     = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_iam_member.dataEditor]
 }
 
 # Permissions for composer service account (google managed, so no need to create)
 resource "google_service_account_iam_member" "custom_service_account" {
-  provider = google-beta
+  provider           = google-beta
   service_account_id = google_service_account.account.id
-  role = "roles/composer.ServiceAgentV2Ext"
-  member = "serviceAccount:service-${data.google_project.project.number}@cloudcomposer-accounts.iam.gserviceaccount.com"
+  role               = "roles/composer.ServiceAgentV2Ext"
+  member             = "serviceAccount:service-${data.google_project.project.number}@cloudcomposer-accounts.iam.gserviceaccount.com"
 }
 
 resource "google_composer_environment" "test" {
-  name   = var.name
-  region = var.region
+  name    = var.name
+  region  = var.region
   project = var.project
   config {
 
@@ -69,7 +69,7 @@ resource "google_composer_environment" "test" {
         storage_gb = 1
       }
       worker {
-        cpu = var.worker_cpu
+        cpu        = var.worker_cpu
         memory_gb  = var.worker_memory_gb
         storage_gb = 1
         min_count  = var.min_workers

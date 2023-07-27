@@ -34,6 +34,18 @@ resource "google_project_service" "pubsub_api" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "scheduler_api" {
+  project            = var.project
+  service            = "cloudscheduler.googleapis.com"
+  disable_on_destroy = false
+}
+
+resource "google_project_service" "artifact_registry_api" {
+  project            = var.project
+  service            = "artifactregistry.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_pubsub_topic" "topic" {
   name = "${var.name}_trigger_topic"
 
@@ -42,6 +54,30 @@ resource "google_pubsub_topic" "topic" {
   ]
 }
 
+resource "google_cloud_scheduler_job" "job" {
+  # Deploy schedulers only if in production
+  count       = var.instantiate_scheduler ? 1 : 0
+  name        = "${var.name}_scheduler"
+  description = "A schedule for triggering the function"
+  schedule    = var.schedule
+  region      = var.function_region
+
+  pubsub_target {
+    topic_name = google_pubsub_topic.topic.id
+    data       = base64encode("test")
+  }
+  depends_on = [
+    google_project_service.scheduler_api,
+    google_pubsub_topic.topic
+  ]
+}
+
+
+module "source_code" {
+  source   = "../gcs_source"
+  project  = var.project
+  app_name = var.name
+}
 
 data "google_project" "project" {}
 
@@ -57,26 +93,26 @@ resource "google_project_iam_member" "token_creator_access" {
   member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
 }
 
-resource "google_cloud_scheduler_job" "job" {
-  name        = "${var.name}_schedule"
-  description = "A schedule for triggering the function"
-  schedule    = var.schedule
-  region      = var.region
-
-  pubsub_target {
-    topic_name = google_pubsub_topic.topic.id
-    data       = base64encode("{}")
-  }
-  depends_on = [
-    google_project_service.cloud_scheduler_api,
-    google_pubsub_topic.topic
-  ]
+resource "google_project_iam_member" "token_creator_access_ce" {
+  project = var.project
+  role    = "roles/iam.serviceAccountTokenCreator"
+  member  = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
 }
 
+resource "google_project_iam_member" "run_invoker_access" {
+  project = var.project
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+}
 
+resource "google_project_iam_member" "run_invoker_access_ce" {
+  project = var.project
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
 
 resource "google_cloudfunctions2_function" "function" {
-  name        = var.name
+  name        = "${var.name}_function"
   location    = var.region
   description = var.description
 
@@ -85,10 +121,9 @@ resource "google_cloudfunctions2_function" "function" {
     entry_point           = var.entry_point
     environment_variables = var.environment
     source {
-      repo_source {
-        project_id  = var.project
-        repo_name   = var.source_repo_name
-        branch_name = var.source_repo_branch
+      storage_source {
+        bucket = module.source_code.bucket_name
+        object = module.source_code.bucket_object_name
       }
     }
   }
@@ -114,7 +149,7 @@ resource "google_cloudfunctions2_function" "function" {
   depends_on = [
     google_project_service.cloud_build_api,
     google_project_service.cloud_functions_api,
-    google_project_service.pubsub_api,
-    google_project_service.artifactregistry_api,
+    google_pubsub_topic.topic,
+    google_project_service.artifact_registry_api
   ]
 }
