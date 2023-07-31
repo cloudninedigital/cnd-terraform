@@ -79,6 +79,18 @@ resource "google_project_iam_binding" "eventarc_receiver_binding" {
   depends_on = [google_service_account.workflows_service_account]
 }
 
+resource "google_project_iam_member" "cloudscheduler_admin_binding" {
+  count = var.trigger_type == "schedule" ? 1 : 0 
+  provider = google-beta
+  project  = data.google_project.project.id
+  role     = "roles/cloudscheduler.admin"
+
+  member = "serviceAccount:${google_service_account.workflows_service_account.email}"
+  depends_on = [google_service_account.workflows_service_account]
+}
+
+
+
 # Grant cloud functions and cloud run invoker role
 resource "google_project_iam_binding" "cloud_functions_invoker_binding" {
   provider = google-beta
@@ -241,7 +253,9 @@ resource "google_cloud_scheduler_job" "workflow" {
     }
 
   }
-  depends_on = [ google_workflows_workflow.workflows_instance, google_service_account.workflows_service_account ]
+  depends_on = [ google_workflows_workflow.workflows_instance, 
+  google_service_account.workflows_service_account,
+  google_project_iam_member.cloudscheduler_admin_binding ]
 }
 
 ### END schedule TRIGGER SPECIFIC PART
