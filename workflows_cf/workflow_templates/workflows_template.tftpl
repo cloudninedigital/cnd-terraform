@@ -11,7 +11,7 @@
                     "cf_event": "$${event}" 
                 },
                 %{endif}
-                %{if trigger_type == "bq" && index > 0}
+                %{if lookup(cf, "table_updated", "") != ""}
                 "body": { 
                     "table_updated": "${cf.table_updated}"
                 },
