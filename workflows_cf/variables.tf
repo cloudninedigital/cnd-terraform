@@ -40,13 +40,13 @@ variable trigger_type {
 variable "region" {
   description = "Region of the workflow"
   type        = string
-  default     = "europe-west4"
+  default     = "europe-west3"
 }
 
 variable "functions_region" {
   description = "Region where Cloud functions are deployed."
   type = string
-  default     = "europe-west4"
+  default     = "europe-west3"
 }
 
 variable "bucket_name" {

@@ -229,6 +229,7 @@ resource "google_eventarc_trigger" "trigger_gcs_tf" {
 ### END gcs TRIGGER SPECIFIC PART
 
 ### START schedule TRIGGER SPECIFIC PART
+### watch out, cloud scheduler isn't available in europe-west4 (and this won't be clear from the error logs)
 resource "google_cloud_scheduler_job" "workflow" {
   count = var.trigger_type == "schedule" ? 1 : 0
   project          = var.project
@@ -242,7 +243,7 @@ resource "google_cloud_scheduler_job" "workflow" {
     uri         = "https://workflowexecutions.googleapis.com/v1/${google_workflows_workflow.workflows_instance.id}/executions"
     body = base64encode(
       jsonencode({
-        "argument" : "arguments in cloud schedule trigger have not yet been implemented, feel free to do so in the workflows_cf terraform module",
+        "argument" : "{}",
         "callLogLevel" : "CALL_LOG_LEVEL_UNSPECIFIED"
         }
     ))

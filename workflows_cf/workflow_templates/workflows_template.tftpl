@@ -24,13 +24,13 @@
                     "type": "OIDC"
                 }
             },
-            "result": "step_${index}_${cf.name}_ReturnValue" }
+            "result": "step_${index}_${cf.name}_return_value" }
         }, 
         {
             "logStep_${index}_${cf.name}": {
               "call": "sys.log",
               "args": {
-                "text": "$${\"Function ${cf.name} step executed with return value \" + step_${index}_${cf.name}_ReturnValue.body }",
+                "text": "$${\"Function ${cf.name} step executed with return value \" + step_${index}_${cf.name}_return_value.body }",
                 "severity": "INFO"
               }
             }
@@ -39,8 +39,8 @@
         ,{
         "conditionalSwitch": {
             "switch": [{
-                "condition": "$${step_${index}_${cf.name}_ReturnValue.body == \"not_created_inserted\" }",
-                "return": "flow halted because source table for flow was not created / inserted, just updated" 
+                "condition": "$${step_${index}_${cf.name}_return_value.body == \"not_created_inserted\" }",
+                "return": "flow halted because source table for flow was not created / inserted (i.e. this might have been the job reference logging instead of the actual table update)" 
             }]
             }
         }%{endif}%{if index < length(cloudfunctions) -1},%{endif} %{endfor} 
