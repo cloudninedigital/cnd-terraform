@@ -142,6 +142,14 @@ resource "google_workflows_workflow" "workflows_instance" {
   ]
 }
 
+## alerting policy
+module "alerting_policy" {
+  source = "../alert_policy"
+  count = var.alert_on_failure ? 1 : 0
+  filter = "resource.type=\"workflows.googleapis.com/Workflow\" severity=ERROR resource.labels.workflow_id=\"${var.name}\""
+}
+
+
 ### START bq TRIGGER SPECIFIC PART
 
 # Create an Eventarc trigger routing BQ table creation/updat events to Workflows

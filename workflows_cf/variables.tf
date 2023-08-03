@@ -61,3 +61,10 @@ variable "schedule" {
   default     = "1 1 * * *"
 
 }
+
+variable "alert_on_failure" {
+  description = "The schedule on which to trigger the function."
+  type        = string
+  default     = "1 1 * * *"
+
+}
