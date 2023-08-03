@@ -146,6 +146,7 @@ resource "google_workflows_workflow" "workflows_instance" {
 module "alerting_policy" {
   source = "../alert_policy"
   count = var.alert_on_failure ? 1 : 0
+  name = "${var.name}-alert-policy"
   filter = "resource.type=\"workflows.googleapis.com/Workflow\" severity=ERROR resource.labels.workflow_id=\"${var.name}\""
 }
 

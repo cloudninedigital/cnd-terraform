@@ -55,3 +55,9 @@ variable "timeout" {
   type        = number
   default     = 540
 }
+
+variable "alert_on_failure" {
+  description = "The schedule on which to trigger the function."
+  type        = bool
+  default     = false
+}
