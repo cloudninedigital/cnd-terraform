@@ -53,3 +53,11 @@ resource "google_cloudfunctions2_function" "function" {
   depends_on = [google_project_service.cloud_build_api, google_project_service.cloud_functions_api]
 
 }
+
+## alerting policy
+module "alerting_policy" {
+  source = "../alert_policy"
+  count = var.alert_on_failure ? 1 : 0
+  name = "${var.name}-alert-policy"
+  filter = "resource.type=\"cloud_function\" severity=ERROR resource.labels.function_name=\"${var.name}\""
+}

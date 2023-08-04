@@ -82,3 +82,9 @@ variable "instantiate_scheduler" {
   type        = bool
   default     = true
 }
+
+variable "alert_on_failure" {
+  description = "The schedule on which to trigger the function."
+  type        = bool
+  default     = false
+}
