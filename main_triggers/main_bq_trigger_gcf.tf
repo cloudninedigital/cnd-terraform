@@ -16,6 +16,7 @@ EOF
     EXCLUDE_TEMP_IDS  = "false"
     ENVIRONMENT        = terraform.workspace
   }
+  alert_on_failure = true
 }
 
 module "gcs_sync" {

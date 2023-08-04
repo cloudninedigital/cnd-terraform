@@ -13,4 +13,5 @@ module "workflows_cf_main_trigger" {
     "table_updated": "some_dataset.nogiets"
   }]
   functions_region = "europe-west1"
+  alert_on_failure = true
 }
