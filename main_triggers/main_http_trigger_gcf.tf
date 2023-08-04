@@ -1,5 +1,5 @@
 module "cf_http_trigger_bq_processing" {
-  source           = "./modules/gf_gen1_http_trigger_source_repo"
+  source           = "./modules/gf_gen2_http_trigger_source_repo"
   name             = "${var.application_name}-${terraform.workspace}"
   description      = <<EOF
 This function will trigger on new files saved in the trigger bucket
