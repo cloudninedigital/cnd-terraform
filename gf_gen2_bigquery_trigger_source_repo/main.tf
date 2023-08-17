@@ -35,12 +35,20 @@ resource "google_project_service" "eventarc" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "pubsub" {
+  project = var.project
+  service            = "pubsub.googleapis.com"
+  disable_on_destroy = false
+}
+
 ##  Permissions for pubsub service account to handle event-arc events (google managed, so no need to create)
 
 resource "google_project_iam_member" "token-creating" {
   project = var.project
   role    = "roles/iam.serviceAccountTokenCreator"
   member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+
+  depends_on = [google_project_service.pubsub]
 }
 
 

@@ -91,6 +91,8 @@ resource "google_project_iam_member" "token_creator_access" {
   project = var.project
   role    = "roles/iam.serviceAccountTokenCreator"
   member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+
+  depends_on = [google_project_service.pubsub_api]
 }
 
 resource "google_project_iam_member" "token_creator_access_ce" {
@@ -103,6 +105,8 @@ resource "google_project_iam_member" "run_invoker_access" {
   project = var.project
   role    = "roles/run.invoker"
   member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+
+  depends_on = [google_project_service.pubsub_api]
 }
 
 resource "google_project_iam_member" "run_invoker_access_ce" {
