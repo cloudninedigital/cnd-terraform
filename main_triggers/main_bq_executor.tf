@@ -12,12 +12,13 @@ module "cf_http_trigger_bq_processing" {
 This function will trigger one or multiple bigquery script based upon BigQuery Executor logic
 EOF
   project     = var.project
+  region      = var.region
   entry_point = "main_bigquery_http_event"
   environment = {
     PROJECT           = var.project
     GCS_PROJECT       = var.project
     GCS_BUCKET_NAME   = module.gcs_folder_sync.bucket_name
-    ENVIROMENT        = terraform.workspace
+    ENVIRONMENT        = terraform.workspace
   }
 }
 
