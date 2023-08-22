@@ -52,10 +52,19 @@ resource "google_project_iam_member" "token-creating" {
 }
 
 
+# Enable IAM API
+resource "google_project_service" "iam" {
+  provider           = google-beta
+  service            = "iam.googleapis.com"
+  disable_on_destroy = false
+}
+
 ## Own service account that creates and runs the cloud function
 resource "google_service_account" "account" {
   account_id   = "${var.name}-service-account"
   display_name = "Test Service Account - used for both the cloud function and eventarc trigger in the test"
+
+  depends_on = [google_project_service.iam]
 }
 
 

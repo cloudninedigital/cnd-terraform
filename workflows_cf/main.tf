@@ -36,12 +36,20 @@ resource "google_project_iam_binding" "token-creator-iam" {
 }
 
 
+# Enable IAM API
+resource "google_project_service" "iam" {
+  provider           = google-beta
+  service            = "iam.googleapis.com"
+  disable_on_destroy = false
+}
 
 # Create a service account for Eventarc trigger and Workflows
 resource "google_service_account" "workflows_service_account" {
   provider     = google-beta
   account_id   = "workflows-sa"
   display_name = "Workflows Service Account"
+
+  depends_on = [google_project_service.iam]
 }
 
 # Grant the logWriter role to the service account
@@ -230,8 +238,11 @@ resource "google_eventarc_trigger" "trigger_gcs_tf" {
 
   service_account = google_service_account.workflows_service_account.email
 
-  depends_on = [google_project_service.pubsub, google_project_service.eventarc,
-  google_service_account.workflows_service_account]
+  depends_on = [
+    google_project_service.pubsub,
+    google_project_service.eventarc,
+    google_service_account.workflows_service_account
+  ]
 }
 
 

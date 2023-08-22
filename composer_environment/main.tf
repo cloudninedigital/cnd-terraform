@@ -12,9 +12,18 @@ resource "google_project_service" "composer" {
   disable_on_destroy = false
 }
 
+# Enable IAM API
+resource "google_project_service" "iam" {
+  provider           = google-beta
+  service            = "iam.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_service_account" "account" {
   account_id   = "${var.name}-composer-account"
   display_name = "Test Service Account for Composer Environment"
+
+  depends_on = [google_project_service.iam]
 }
 
 resource "google_project_iam_member" "composer-worker" {
@@ -84,4 +93,6 @@ resource "google_composer_environment" "test" {
       service_account = google_service_account.account.name
     }
   }
+
+  depends_on = [google_project_service.composer, google_service_account.account]
 }
