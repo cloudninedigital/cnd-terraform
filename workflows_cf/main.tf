@@ -165,7 +165,7 @@ module "alerting_policy" {
 # Only relevant when trigger type equals 'bq'
 resource "google_eventarc_trigger" "trigger_gbq_tf" {
   count = var.trigger_type == "bq" ? 1 : 0
-  name     = "${var.name}-trigger"
+  name     = replace("${var.name}-trigger", "_", "-")
   provider = google-beta
   location = var.region
   matching_criteria {
@@ -218,7 +218,7 @@ resource "google_storage_bucket" "workflows_trigger_bucket" {
 # Create an Eventarc trigger routing GCS events to Workflows
 resource "google_eventarc_trigger" "trigger_gcs_tf" {
   count = var.trigger_type == "gcs" ? 1 : 0
-  name     = "${var.name}-trigger"
+  name     = replace("${var.name}-trigger", "_", "-")
   provider = google-beta
   location = var.region
   matching_criteria {
