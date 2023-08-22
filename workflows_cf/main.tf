@@ -28,7 +28,7 @@ resource "google_project_service" "workflows" {
 
 resource "google_project_iam_binding" "token-creator-iam" {
   provider = google-beta
-  project  = data.google_project.project.id
+  project  = var.project
   role     = "roles/iam.serviceAccountTokenCreator"
 
   members    = ["serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"]
@@ -55,7 +55,7 @@ resource "google_service_account" "workflows_service_account" {
 # Grant the logWriter role to the service account
 resource "google_project_iam_binding" "project_binding_eventarc" {
   provider = google-beta
-  project  = data.google_project.project.id
+  project  = var.project
   role     = "roles/logging.logWriter"
 
   members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
@@ -66,7 +66,7 @@ resource "google_project_iam_binding" "project_binding_eventarc" {
 # Grant the workflows.invoker role to the service account
 resource "google_project_iam_binding" "project_binding_workflows" {
   provider = google-beta
-  project  = data.google_project.project.id
+  project  = var.project
   role     = "roles/workflows.invoker"
 
   members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
@@ -79,7 +79,7 @@ resource "google_project_iam_binding" "project_binding_workflows" {
 resource "google_project_iam_binding" "eventarc_receiver_binding" {
   count = var.trigger_type == "bq" || var.trigger_type == "gcs" ? 1 : 0 
   provider = google-beta
-  project  = data.google_project.project.id
+  project  = var.project
   role     = "roles/eventarc.eventReceiver"
 
   members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
@@ -90,7 +90,7 @@ resource "google_project_iam_binding" "eventarc_receiver_binding" {
 resource "google_project_iam_member" "cloudscheduler_admin_binding" {
   count = var.trigger_type == "schedule" ? 1 : 0 
   provider = google-beta
-  project  = data.google_project.project.id
+  project  = var.project
   role     = "roles/cloudscheduler.admin"
 
   member = "serviceAccount:${google_service_account.workflows_service_account.email}"
@@ -102,7 +102,7 @@ resource "google_project_iam_member" "cloudscheduler_admin_binding" {
 # Grant cloud functions and cloud run invoker role
 resource "google_project_iam_binding" "cloud_functions_invoker_binding" {
   provider = google-beta
-  project  = data.google_project.project.id
+  project  = var.project
   role     = "roles/cloudfunctions.invoker"
 
   members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
@@ -112,7 +112,7 @@ resource "google_project_iam_binding" "cloud_functions_invoker_binding" {
 
 resource "google_project_iam_binding" "cloud_run_invoker_binding" {
   provider = google-beta
-  project  = data.google_project.project.id
+  project  = var.project
   role     = "roles/run.invoker"
 
   members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
@@ -124,7 +124,7 @@ resource "google_project_iam_binding" "cloud_run_invoker_binding" {
 resource "google_project_iam_binding" "gcs_binding" {
   count = var.trigger_type == "gcs" ? 1 : 0 
   provider = google-beta
-  project  = data.google_project.project.id
+  project  = var.project
   role     = "roles/storage.admin"
   members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
 }
