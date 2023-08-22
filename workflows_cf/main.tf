@@ -46,7 +46,7 @@ resource "google_project_service" "iam" {
 # Create a service account for Eventarc trigger and Workflows
 resource "google_service_account" "workflows_service_account" {
   provider     = google-beta
-  account_id   = "workflows-sa"
+  account_id   = replace("workflows-sa-${terraform.workspace}", "_", "-")
   display_name = "Workflows Service Account"
 
   depends_on = [google_project_service.iam]
