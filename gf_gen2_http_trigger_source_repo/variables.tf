@@ -37,6 +37,12 @@ variable "max_instances" {
   default     = 10
 }
 
+variable "min_instances" {
+  description = "Minimum amount of instances of this function allowed to run simultaneously"
+  type        = number
+  default     = 0
+}
+
 variable "environment" {
   description = "Environment variables to be forwarded to function."
   type        = map(string)

@@ -33,6 +33,7 @@ resource "google_cloudfunctions_function" "gcs_triggered_function" {
   available_memory_mb   = var.available_memory_mb
   timeout               = var.timeout
   max_instances         = var.max_instances
+  min_instances         = var.min_instances
   # This should be done in another way, it seems clunky
   environment_variables = var.environment
   event_trigger {

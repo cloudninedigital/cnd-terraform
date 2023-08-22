@@ -142,10 +142,10 @@ resource "google_cloudfunctions2_function" "function" {
   }
 
   service_config {
-    max_instance_count             = 3
-    min_instance_count             = 1
+    max_instance_count             = var.max_instances
+    min_instance_count             = var.min_instances
     available_memory               = var.available_memory
-    timeout_seconds                = 60
+    timeout_seconds                = var.timeout
     environment_variables          = var.environment
     ingress_settings               = "ALLOW_INTERNAL_ONLY"
     all_traffic_on_latest_revision = true
