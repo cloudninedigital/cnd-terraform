@@ -167,7 +167,7 @@ resource "google_eventarc_trigger" "trigger_gbq_tf" {
   count = var.trigger_type == "bq" ? 1 : 0
   name     = replace("${var.name}-trigger", "_", "-")
   provider = google-beta
-  location = var.region
+  location = "global"
   matching_criteria {
     attribute = "type"
     value = "google.cloud.audit.log.v1.written"
