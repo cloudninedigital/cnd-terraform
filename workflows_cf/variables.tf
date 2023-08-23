@@ -62,6 +62,11 @@ variable "schedule" {
 
 }
 
+variable "service_account_name" {
+  description = "Name of service account to use for workflow"
+  type        = string
+}
+
 variable "alert_on_failure" {
   description = "The schedule on which to trigger the function."
   type        = bool

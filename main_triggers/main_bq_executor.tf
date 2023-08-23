@@ -41,6 +41,7 @@ module "workflows_cf_main_trigger" {
   ]
   functions_region = var.region
   alert_on_failure = true
+  service_account_name  = replace("workflows-bqexecutor-${terraform.workspace}", "_", "-")
 
   depends_on = [
     module.gcs_folder_sync,

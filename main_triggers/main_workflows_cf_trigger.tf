@@ -13,5 +13,6 @@ module "workflows_cf_main_trigger" {
     "table_updated": "some_dataset.nogiets"
   }]
   functions_region = "europe-west1"
+  service_account_name = replace("workflows-sa-bq-test-${terraform.workspace}", "_", "-")
   alert_on_failure = true
 }
