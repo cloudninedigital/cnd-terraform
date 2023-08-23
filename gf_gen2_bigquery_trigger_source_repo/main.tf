@@ -155,7 +155,7 @@ resource "google_cloudfunctions2_function" "function" {
   event_trigger {
     trigger_region        = var.region
     service_account_email = google_service_account.account.email
-    retry_policy          = "RETRY_POLICY_RETRY"
+    retry_policy          = "RETRY_POLICY_DO_NOT_RETRY"
     event_type            = "google.cloud.audit.log.v1.written"
     event_filters {
       attribute = "serviceName"
