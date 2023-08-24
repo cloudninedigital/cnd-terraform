@@ -3,6 +3,12 @@ variable "dataset_id" {
     type = string
 }
 
+variable "region" {
+    description = "The region to create the dataset in"
+    type = string
+    default = "EU"
+}
+
 variable "friendly_name" {
     description = "The friendly name of the dataset to create"
     type = string
