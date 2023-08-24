@@ -35,19 +35,20 @@ variable "default_partition_expiration_ms" {
 
 variable "tables" {
     description = "The tables to create in the dataset"
-    type        = list(
+    type        = map(
         object({
+            table_id = string
             partition_table = optional(bool, true)
-        partition_type = optional(string, "DAY")
-        partition_field = optional(string)
-        require_partition_filter = optional(bool, false)
-        schema = list(object({
-            name = string
-            type = string
-            mode = optional(string, "NULLABLE")
-            description = optional(string, "")
-        }))
-    })
+            partition_type = optional(string, "DAY")
+            partition_field = optional(string)
+            require_partition_filter = optional(bool, false)
+            schema = list(object({
+                name = string
+                type = string
+                mode = optional(string, "NULLABLE")
+                description = optional(string, "")
+            }))
+        })
     )
 
     default = {}

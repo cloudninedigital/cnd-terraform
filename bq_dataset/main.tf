@@ -9,15 +9,15 @@ resource "google_bigquery_dataset" "dataset" {
 }
 
 resource "google_bigquery_table" "tables" {
-  for_each = toset(var.tables)
+  for_each = var.tables
   dataset_id = google_bigquery_dataset.dataset.dataset_id
-  table_id   = each.value.name
+  table_id   = each.table_id
 
   time_partitioning {
-    for_each = each.value.partition_table ? [1] : []
-    type = each.value.partition_type
+    for_each = each.partition_table ? [1] : []
+    type = each.partition_type
     field = each.value.partition_field
-    require_partition_filter = each.value.require_partition_filter
+    require_partition_filter = each.require_partition_filter
   }
 
   schema = each.value.schema
