@@ -136,7 +136,7 @@ resource "google_cloudfunctions2_function" "function" {
   }
 
   event_trigger {
-    trigger_region        = var.region
+    trigger_region        = "global"
     service_account_email = google_service_account.account.email
     retry_policy          = "RETRY_POLICY_RETRY"
     event_type            = "google.cloud.audit.log.v1.written"
