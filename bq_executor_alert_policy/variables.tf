@@ -51,6 +51,6 @@ variable "email_addresses" {
   description = "email addresses to send notifications to"
   type = map(string)
   default = {
-    siteanalyse = "siteanalyse@anwb.nl"
+    cnd_alerts = "alerting@cloudninedigital.nl"
   }
 }
