@@ -1,3 +1,82 @@
+# START general IAM roles and service account
+
+locals {
+  workflows_sa_roles = [
+    "roles/logging.logWriter",
+    "roles/workflows.invoker",
+    "roles/cloudfunctions.invoker",
+    "roles/run.invoker",
+    "roles/storage.admin",
+  ]
+}
+
+# Enable IAM API
+resource "google_project_service" "iam" {
+  provider           = google-beta
+  service            = "iam.googleapis.com"
+  disable_on_destroy = false
+}
+
+
+# Create a service account for Eventarc trigger and Workflows
+resource "google_service_account" "workflows_service_account" {
+  provider     = google-beta
+  account_id   = var.service_account_name
+  display_name = "Workflows Service Account"
+
+  depends_on = [google_project_service.iam]
+}
+
+resource "google_project_iam_member" "roles" {
+  for_each = toset(local.workflows_sa_roles)
+  project = var.project
+  role    = each.key
+  member  = "serviceAccount:${google_service_account.workflows_service_account.email}"
+}
+
+resource "google_project_iam_member" "token-creator-iam" {
+  project  = var.project
+  role     = "roles/iam.serviceAccountTokenCreator"
+  member    = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"
+  depends_on = [google_project_service.pubsub]
+}
+
+# END general IAM roles and service account
+
+# START trigger specific IAM roles
+
+# Grant the eventarc.eventReceiver role to the service account
+resource "google_project_iam_member" "eventarc_receiver_binding" {
+  count = var.trigger_type == "bq" || var.trigger_type == "gcs" ? 1 : 0
+  provider = google-beta
+  project  = var.project
+  role     = "roles/eventarc.eventReceiver"
+
+  member = "serviceAccount:${google_service_account.workflows_service_account.email}"
+
+  depends_on = [google_service_account.workflows_service_account]
+}
+
+resource "google_project_iam_member" "cloudscheduler_admin_binding" {
+  count = var.trigger_type == "schedule" ? 1 : 0
+  provider = google-beta
+  project  = var.project
+  role     = "roles/cloudscheduler.admin"
+
+  member = "serviceAccount:${google_service_account.workflows_service_account.email}"
+  depends_on = [google_service_account.workflows_service_account]
+}
+
+resource "google_project_iam_member" "gcs_binding" {
+  count = var.trigger_type == "gcs" ? 1 : 0
+  provider = google-beta
+  project  = var.project
+  role     = "roles/storage.admin"
+  member = "serviceAccount:${google_service_account.workflows_service_account.email}"
+}
+
+# END trigger specific IAM roles
+
 # Used to retrieve project_number later
 data "google_project" "project" {
   provider = google-beta
@@ -26,108 +105,10 @@ resource "google_project_service" "workflows" {
   disable_on_destroy = false
 }
 
-resource "google_project_iam_binding" "token-creator-iam" {
-  provider = google-beta
-  project  = var.project
-  role     = "roles/iam.serviceAccountTokenCreator"
-
-  members    = ["serviceAccount:service-${data.google_project.project.number}@gcp-sa-pubsub.iam.gserviceaccount.com"]
-  depends_on = [google_project_service.pubsub]
-}
-
-
-# Enable IAM API
-resource "google_project_service" "iam" {
-  provider           = google-beta
-  service            = "iam.googleapis.com"
-  disable_on_destroy = false
-}
-
-# Create a service account for Eventarc trigger and Workflows
-resource "google_service_account" "workflows_service_account" {
-  provider     = google-beta
-  account_id   = var.service_account_name
-  display_name = "Workflows Service Account"
-
-  depends_on = [google_project_service.iam]
-}
-
-# Grant the logWriter role to the service account
-resource "google_project_iam_binding" "project_binding_eventarc" {
-  provider = google-beta
-  project  = var.project
-  role     = "roles/logging.logWriter"
-
-  members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
-
-  depends_on = [google_service_account.workflows_service_account]
-}
-
-# Grant the workflows.invoker role to the service account
-resource "google_project_iam_binding" "project_binding_workflows" {
-  provider = google-beta
-  project  = var.project
-  role     = "roles/workflows.invoker"
-
-  members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
-
-  depends_on = [google_service_account.workflows_service_account]
-}
-
-
-# Grant the eventarc.eventReceiver role to the service account
-resource "google_project_iam_binding" "eventarc_receiver_binding" {
-  count = var.trigger_type == "bq" || var.trigger_type == "gcs" ? 1 : 0 
-  provider = google-beta
-  project  = var.project
-  role     = "roles/eventarc.eventReceiver"
-
-  members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
-
-  depends_on = [google_service_account.workflows_service_account]
-}
-
-resource "google_project_iam_member" "cloudscheduler_admin_binding" {
-  count = var.trigger_type == "schedule" ? 1 : 0 
-  provider = google-beta
-  project  = var.project
-  role     = "roles/cloudscheduler.admin"
-
-  member = "serviceAccount:${google_service_account.workflows_service_account.email}"
-  depends_on = [google_service_account.workflows_service_account]
-}
 
 
 
-# Grant cloud functions and cloud run invoker role
-resource "google_project_iam_binding" "cloud_functions_invoker_binding" {
-  provider = google-beta
-  project  = var.project
-  role     = "roles/cloudfunctions.invoker"
 
-  members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
-
-  depends_on = [google_service_account.workflows_service_account]
-}
-
-resource "google_project_iam_binding" "cloud_run_invoker_binding" {
-  provider = google-beta
-  project  = var.project
-  role     = "roles/run.invoker"
-
-  members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
-
-  depends_on = [google_service_account.workflows_service_account]
-}
-
-
-resource "google_project_iam_binding" "gcs_binding" {
-  count = var.trigger_type == "gcs" ? 1 : 0 
-  provider = google-beta
-  project  = var.project
-  role     = "roles/storage.admin"
-  members = ["serviceAccount:${google_service_account.workflows_service_account.email}"]
-}
 
 # Define and deploy a workflow
 resource "google_workflows_workflow" "workflows_instance" {
