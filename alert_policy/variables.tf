@@ -16,6 +16,7 @@ variable "filter" {
 variable "label_extractors" {
     description = "label extractors"
     type = map(string)
+    default = {}
 }
 
 variable "notification_rate_limit" {
