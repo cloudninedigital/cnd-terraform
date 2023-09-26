@@ -24,17 +24,6 @@ variable "runtime" {
   default     = "python310"
 }
 
-variable "source_repo_name" {
-  description = "Name of the Cloud Repository that hosts the function definition."
-  type        = string
-}
-
-variable "source_repo_branch" {
-  description = "Branch name containing code to be deployed."
-  type        = string
-  default     = "main"
-}
-
 variable "project" {
   description = "Project ID."
   type        = string
