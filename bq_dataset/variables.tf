@@ -24,13 +24,13 @@ variable "description" {
 variable "default_table_expiration_ms" {
     description = "The default lifetime of all tables in the dataset, in milliseconds"
     type = number
-    default = 0
+    default = null
 }
 
 variable "default_partition_expiration_ms" {
     description = "The default lifetime of all partitions in the dataset, in milliseconds"
     type = number
-    default = 0
+    default = null
 }
 
 variable "tables" {
@@ -38,7 +38,7 @@ variable "tables" {
     type        = map(
         object({
             table_id = string
-            partition_table = optional(bool, true)
+            partition_table = optional(bool, false)
             partition_type = optional(string, "DAY")
             partition_field = optional(string)
             require_partition_filter = optional(bool, false)

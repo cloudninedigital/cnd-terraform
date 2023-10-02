@@ -11,14 +11,17 @@ resource "google_bigquery_dataset" "dataset" {
 resource "google_bigquery_table" "tables" {
   for_each = var.tables
   dataset_id = google_bigquery_dataset.dataset.dataset_id
-  table_id   = each.table_id
-
-  time_partitioning {
-    for_each = each.partition_table ? [1] : []
-    type = each.partition_type
+  table_id   = each.value.table_id
+  dynamic time_partitioning {
+    for_each = each.value.partition_table ? [each.value] : []
+    content {   
+    type = each.value.partition_type
     field = each.value.partition_field
-    require_partition_filter = each.require_partition_filter
+    require_partition_filter = each.value.require_partition_filter
+    }
   }
 
-  schema = each.value.schema
+  schema = <<EOF
+   ${jsonencode(each.value.schema)}
+   EOF
 }
