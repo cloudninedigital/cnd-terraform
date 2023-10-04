@@ -2,7 +2,7 @@
     {%{if trigger_type == "bq" || trigger_type == "gcs"}"params":  ["event"],%{endif}
     "steps": [%{ for index, cf in cloudfunctions ~}
         {
-        "step_${index}_${cf.name}": {
+        "step_${index}": {
             "call": "http.post",
             "args": {
                 "url": "https://${region}-${project}.cloudfunctions.net/${cf.name}",
@@ -16,6 +16,11 @@
                     "table_updated": "${cf.table_updated}"
                 },
                 %{endif}
+               %{if index > 0}
+               "body": {
+                    "previous_output": "$${step_${index - 1}_return_value.body}"
+               },
+                %{endif}
                 "headers": { 
                     "Content-type": "application/json",
                     "charset": "utf-8"
@@ -24,14 +29,18 @@
                     "type": "OIDC"
                 }
             },
-            "result": "step_${index}_${cf.name}_return_value" }
+            "result": "step_${index}_return_value" }
         }, 
         {
             "logStep_${index}_${cf.name}": {
               "call": "sys.log",
               "args": {
-                "text": "$${\"Function ${cf.name} step executed with return value \" + step_${index}_${cf.name}_return_value.body }",
-                "severity": "INFO"
+                "severity": "INFO",
+                "json": {
+                    "step": "step_${index}",
+                    "function": "${cf.name}",
+                    "output": "$${step_${index}_return_value.body}"
+                 }
               }
             }
           }
@@ -39,7 +48,7 @@
         ,{
         "conditionalSwitch": {
             "switch": [{
-                "condition": "$${step_${index}_${cf.name}_return_value.body == \"not_created_inserted\" }",
+                "condition": "$${step_${index}_return_value.body.status == \"not_created_inserted\" }",
                 "return": "flow halted because source table for flow was not created / inserted (i.e. this might have been the job reference logging instead of the actual table update)" 
             }]
             }
