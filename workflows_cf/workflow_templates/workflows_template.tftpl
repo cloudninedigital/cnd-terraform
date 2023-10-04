@@ -40,6 +40,8 @@
                     "step": "step_${index}",
                     "function": "${cf.name}",
                     "output": "$${step_${index}_return_value.body}"
+                    "code": "$${step_${index}_return_value.code}
+                    "headers": "$${step_${index}_return_value.headers}
                  }
               }
             }
