@@ -48,8 +48,8 @@
         ,{
         "conditionalSwitch": {
             "switch": [{
-                "condition": "$${step_${index}_return_value.body.status == \"not_created_inserted\" }",
-                "return": "flow halted because source table for flow was not created / inserted (i.e. this might have been the job reference logging instead of the actual table update)" 
+                "condition": "$${step_${index}_return_value.code == 204 }",
+                "return": "flow halted because source table for flow was not created / inserted (i.e. this might have been the job reference logging instead of the actual table update)"
             }]
             }
         }%{endif}%{if index < length(cloudfunctions) -1},%{endif} %{endfor} 
