@@ -8,6 +8,14 @@ data "archive_file" "source" {
   type        = "zip"
   source_dir  = "${path.root}/.."
   output_path = "/tmp/git-function-${local.timestamp}.zip"
+  excludes = concat(
+    tolist(fileset("${path.root}/..", "terraform/**")),
+    tolist(fileset("${path.root}/..", ".git/**")),
+    tolist(fileset("${path.root}/..", ".github/**")),
+    tolist(fileset("${path.root}/..", "docs/**")),
+    tolist(fileset("${path.root}/..", "tests/**")),
+    tolist(fileset("${path.root}/..", "*.md")),
+  )
 }
 
 resource "google_storage_bucket" "bucket" {
