@@ -19,7 +19,7 @@ data "archive_file" "source" {
 }
 
 resource "google_storage_bucket" "bucket" {
-  name     = "${var.project}-${var.app_name}-source"
+  name     = "${var.app_name}-source"
   location = var.region
 }
 
