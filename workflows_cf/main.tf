@@ -171,7 +171,8 @@ resource "google_eventarc_trigger" "trigger_gbq_tf" {
   service_account = google_service_account.workflows_service_account.email
 
   depends_on = [google_project_service.pubsub, google_project_service.eventarc,
-  google_service_account.workflows_service_account]
+  google_service_account.workflows_service_account,
+  google_project_iam_member.eventarc_receiver_binding]
 }
 
 

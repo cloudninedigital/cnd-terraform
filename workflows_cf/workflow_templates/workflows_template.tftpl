@@ -10,16 +10,15 @@
                 "body": { 
                     "cf_event": "$${event}" 
                 },
-                %{endif}
-                %{if lookup(cf, "table_updated", "") != ""}
+                %{else}
                 "body": { 
-                    "table_updated": "${cf.table_updated}"
-                },
+                %{if lookup(cf, "table_updated", "") != ""}
+                    "table_updated": "${cf.table_updated}",
                 %{endif}
                %{if index > 0}
-               "body": {
                     "previous_output": "$${step_${index - 1}_return_value.body}"
-               },
+                %{endif}
+                },
                 %{endif}
                 "headers": { 
                     "Content-type": "application/json",
@@ -39,9 +38,9 @@
                 "json": {
                     "step": "step_${index}",
                     "function": "${cf.name}",
-                    "output": "$${step_${index}_return_value.body}"
-                    "code": "$${step_${index}_return_value.code}
-                    "headers": "$${step_${index}_return_value.headers}
+                    "output": "$${step_${index}_return_value.body}",
+                    "code": "$${step_${index}_return_value.code}",
+                    "headers": "$${step_${index}_return_value.headers}"
                  }
               }
             }

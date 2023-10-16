@@ -28,6 +28,43 @@ module "source_code" {
   app_name = var.name
 }
 
+resource "google_service_account" "account" {
+  account_id   = "${replace(var.name, "_", "-")}-sa"
+  display_name = "Test Service Account - used for both the cloud function and eventarc trigger in the test"
+
+}
+
+resource "google_project_iam_member" "invoking" {
+  project = var.project
+  role    = "roles/run.invoker"
+  member  = "serviceAccount:${google_service_account.account.email}"
+}
+
+
+resource "google_project_iam_member" "artifactregistry-reader" {
+  project    = var.project
+  role       = "roles/artifactregistry.reader"
+  member     = "serviceAccount:${google_service_account.account.email}"
+}
+
+resource "google_project_iam_member" "dataEditor" {
+  project    = var.project
+  role       = "roles/bigquery.dataEditor"
+  member     = "serviceAccount:${google_service_account.account.email}"
+}
+
+resource "google_project_iam_member" "jobUser" {
+  project    = var.project
+  role       = "roles/bigquery.jobUser"
+  member     = "serviceAccount:${google_service_account.account.email}"
+}
+
+resource "google_project_iam_member" "objectViewer" {
+  project    = var.project
+  role       = "roles/storage.objectViewer"
+  member     = "serviceAccount:${google_service_account.account.email}"
+}
+
 
 resource "google_cloudfunctions2_function" "function" {
   name        = var.name
@@ -54,9 +91,11 @@ resource "google_cloudfunctions2_function" "function" {
     timeout_seconds    = var.timeout
     environment_variables = var.environment
     all_traffic_on_latest_revision = true
+    service_account_email = google_service_account.account.email
   }
 
-  depends_on = [google_project_service.cloud_build_api, google_project_service.cloud_functions_api]
+  depends_on = [google_project_service.cloud_build_api, google_project_service.cloud_functions_api,
+  google_service_account.account]
 
 }
 
