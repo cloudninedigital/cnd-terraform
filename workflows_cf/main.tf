@@ -17,6 +17,13 @@ resource "google_project_service" "iam" {
   disable_on_destroy = false
 }
 
+# Cloud scheduler api
+resource "google_project_service" "cloudscheduler" {
+  provider           = google-beta
+  service            = "cloudscheduler.googleapis.com"
+  disable_on_destroy = false
+}
+
 
 # Create a service account for Eventarc trigger and Workflows
 resource "google_service_account" "workflows_service_account" {
@@ -251,7 +258,8 @@ resource "google_cloud_scheduler_job" "workflow" {
   }
   depends_on = [ google_workflows_workflow.workflows_instance, 
   google_service_account.workflows_service_account,
-  google_project_iam_member.cloudscheduler_admin_binding ]
+  google_project_iam_member.cloudscheduler_admin_binding,
+  google_project_service.cloudscheduler ]
 }
 
 
