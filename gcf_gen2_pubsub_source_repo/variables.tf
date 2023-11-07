@@ -84,6 +84,12 @@ variable "instantiate_scheduler" {
   default     = true
 }
 
+variable "vpc_connector" {
+  description = "The name of the vpc connector needed (only relevant if a static IP is needed)"
+  type        = string
+  default     = ""
+}
+
 variable "alert_on_failure" {
   description = "The schedule on which to trigger the function."
   type        = bool
