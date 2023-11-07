@@ -267,6 +267,7 @@ module "bq_executor_alerting_policy" {
   source = "../bq_executor_alert_policy"
   count  = ((var.trigger_type == "bq") && var.alert_on_failure) ? 1 : 0
   name   = "${var.name}_bq_executor_alert"
+  email_addresses = var.alert_email_addresses
 }
 
 ## alerting policy
@@ -275,5 +276,6 @@ module "alerting_policy" {
   count  = ((var.trigger_type != "bq") && var.alert_on_failure) ? 1 : 0
   name   = "${var.name}-alert-policy"
   filter = "resource.type=\"workflows.googleapis.com/Workflow\" severity=ERROR resource.labels.workflow_id=\"${var.name}\""
+  email_addresses = var.alert_email_addresses
 }
 ### END schedule TRIGGER SPECIFIC PART

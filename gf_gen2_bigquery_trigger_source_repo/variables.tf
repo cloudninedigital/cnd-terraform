@@ -73,3 +73,11 @@ variable "alert_on_failure" {
   type        = bool
   default     = false
 }
+
+variable "alert_email_addresses" {
+  description = "email addresses to send notifications to"
+  type = map(string)
+  default = {
+    cnd_alerts = "alerting@cloudninedigital.nl"
+  }
+}
