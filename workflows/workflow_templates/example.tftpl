@@ -1,0 +1,68 @@
+{"main":
+    {"params": ["event"],
+    "steps": [{
+        "cloudFunctionOne": {
+            "call": "http.post",
+            "args": {
+                "url": "https://europe-west1-cloudnine-digital.cloudfunctions.net/bigquery_http_function",
+                "body": { 
+                    "cf_event": "$${event}" 
+                },
+                "headers": { 
+                    "Content-type": "application/json",
+                    "charset": "utf-8"
+                },
+                "auth": {
+                    "type": "OIDC"
+                }
+            },
+            "result": "CloudFunctionOneReturnValue" }
+        }, 
+        {
+            "logStep1": {
+              "call": "sys.log",
+              "args": {
+                "text": "$${\"First step executed with return value \" + CloudFunctionOneReturnValue.body }",
+                "severity": "INFO"
+              }
+            }
+          },
+        {
+        "conditionalSwitch": {
+            "switch": [{
+                "condition": "$${CloudFunctionOneReturnValue.body == \"not_created_inserted\" }",
+                "return": "flow halted because source table for flow was not created / inserted, just updated" 
+            }],
+            "next": "cloudFunctionTwo"
+            }
+        },    
+        {"cloudFunctionTwo": {
+            "call": "http.post",
+            "args": {
+                "url": "https://europe-west1-cloudnine-digital.cloudfunctions.net/bigquery_http_function",
+                "body": { 
+                    "table_updated": "some_dataset.nogiets"  
+                },
+                "headers": { 
+                    "Content-type": "application/json",
+                    "charset": "utf-8"
+                },
+                "auth": {
+                    "type": "OIDC"
+                }
+            },                    
+            "result": "CloudFunctionTwoReturnValue"
+        }
+        },
+        {
+            "logStep2": {
+              "call": "sys.log",
+              "args": {
+                "text": "$${\"Second step executed with return value \" + CloudFunctionTwoReturnValue.body}",
+                "severity": "INFO"
+              }
+            }
+          }
+    ]        
+} 
+}

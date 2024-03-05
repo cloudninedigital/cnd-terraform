@@ -8,14 +8,41 @@ variable "description" {
   type        = string
 }
 
-variable "project" {
-  description = "Project ID."
+variable "check_project" {
+  description = "project to check data quality output in."
   type        = string
 }
 
+variable "write_project" {
+  description = "project to write data quality output to."
+  type        = string
+}
+
+variable "write_dataset" {
+  description = "Table to write data quality output to."
+  type        = string
+}
+
+variable "write_table" {
+  description = "Table to write data quality output to."
+  type        = string
+}
+
+variable "configuration_file_name" {
+  description = "name of configuration_file"
+  type        = string
+  default     = "configuration.json"
+}
+
+
 variable "region" {
-  description = "Region where function is living"
-  default     = "EU"
+  description = "Region where function is living."
+  default     = "europe-west1"
+}
+
+variable "function_region" {
+  description = "Region where function is living."
+  default     = "europe-west1"
 }
 
 variable "runtime" {
@@ -24,14 +51,25 @@ variable "runtime" {
   default     = "python310"
 }
 
+variable "project" {
+  description = "Project ID."
+  type        = string
+}
+
 variable "available_memory" {
   description = "The amount of memory available for a function. See https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/cloudfunctions2_function"
   type        = string
   default     = "2G"
 }
 
+variable "available_cpu" {
+    description = "The amount of CPU available for a function. See https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/cloudfunctions2_function"
+    type        = string
+    default     = "1"
+}
+
 variable "max_instances" {
-  description = "Amount of instances of this function allowed to run simultaneously"
+  description = "Amount of instances of this function allowed to run simultaneously."
   type        = number
   default     = 10
 }
@@ -49,7 +87,6 @@ variable "environment" {
 }
 
 
-
 variable "entry_point" {
   description = "Entry point method of the Cloud function."
   type        = string
@@ -62,10 +99,17 @@ variable "timeout" {
   default     = 540
 }
 
-variable "vpc_connector" {
-  description = "The name of the vpc connector needed (only relevant if a static IP is needed)"
+variable "schedule" {
+  description = "The schedule on which to trigger the function."
   type        = string
-  default     = ""
+  default     = "*/2 * * * *"
+
+}
+
+variable "instantiate_scheduler" {
+  description = "Whether to instantiate scheduler or not."
+  type        = bool
+  default     = true
 }
 
 variable "alert_on_failure" {
@@ -74,16 +118,8 @@ variable "alert_on_failure" {
   default     = false
 }
 
-variable "alert_email_addresses" {
-  description = "email addresses to send notifications to"
-  type = map(string)
-  default = {
-    cnd_alerts = "alerting@cloudninedigital.nl"
-  }
-}
-
 variable "source_folder_relative_path" {
   description = "relative path to cloud function code"
   type        = string
-  default = ".."
+  default = "../project_name/data_quality"
 }

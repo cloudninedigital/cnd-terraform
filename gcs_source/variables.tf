@@ -8,6 +8,12 @@ variable "app_name" {
   type        = string
 }
 
+variable "source_folder_relative_path" {
+  description = "relative path to cloud function code"
+  type        = string
+  default = ".."
+}
+
 variable "project" {
   description = "Project ID."
   type        = string

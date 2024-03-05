@@ -75,3 +75,9 @@ variable "timeout" {
   type        = number
   default     = 540
 }
+
+variable "source_folder_relative_path" {
+  description = "relative path to cloud function code"
+  type        = string
+  default = ".."
+}

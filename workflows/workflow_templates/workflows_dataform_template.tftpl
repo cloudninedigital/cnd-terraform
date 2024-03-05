@@ -1,0 +1,76 @@
+{"main":
+    {%{if trigger_type == "bq" || trigger_type == "gcs"}"params":  ["event"],%{endif}
+    "steps": [{
+        "conditionalSwitch": {
+            "switch": [{
+                "condition": "$${get_type(map.get(event.data.protoPayload.metadata, \"tableDataChange\")) == \"null\" or int(event.data.protoPayload.metadata.tableDataChange.insertedRowsCount) < 1 }",
+                "return": "flow halted because source table for flow was not created / inserted (i.e. this might have been the job reference logging instead of the actual table update)" 
+            }]
+        }
+        },
+        %{ for index, dp in dataform_pipelines ~}
+        {
+        "step_${index}_compilation_result": {
+            "call": "http.post",
+            "args": {
+                "url": "https://dataform.googleapis.com/v1beta1/projects/${project}/locations/${region}/repositories/${dp.repository}/compilationResults",
+                "timeout": 1800.0,
+                "body": {
+                    "gitCommitish": "main",
+                    "codeCompilationConfig": {
+                        "vars": {
+                            "table": "$${text.split(text.split(event.data.protoPayload.resourceName, \"datasets/\")[1], \"/tables\")[0] + \".\" + text.split(event.data.protoPayload.resourceName, \"/tables/\")[1]}"
+                        }
+                    }
+                },
+                "headers": { 
+                    "Content-type": "application/json",
+                    "charset": "utf-8"
+                },
+                "auth": {
+                    "type": "OAuth2"
+                }
+            },
+            "result": "step_${index}_compilation_result" }
+        }, 
+        {
+        "step_${index}_workflow_invocation": {
+            "call": "http.post",
+            "args": {
+                "url": "https://dataform.googleapis.com/v1beta1/projects/${project}/locations/${region}/repositories/${dp.repository}/workflowInvocations",
+                "timeout": 1800.0,
+                "body": {
+                    "compilationResult": "$${step_${index}_compilation_result.body.name}",
+                    "invocationConfig": {
+                        "includedTags":[
+                            "${dp.tag}"
+                        ]
+                    }
+                },
+                "headers": { 
+                    "Content-type": "application/json",
+                    "charset": "utf-8"
+                },
+                "auth": {
+                    "type": "OAuth2"
+                }
+            },
+            "result": "step_${index}_workflow_invocation_result" }
+        }, 
+        {
+            "logStep_${index}_${dp.name}": {
+              "call": "sys.log",
+              "args": {
+                "severity": "INFO",
+                "json": {
+                    "step": "step_${index}",
+                    "pipeline": "${dp.name} - ${dp.tag}",
+                    "output": "$$step_${index}_workflow_invocation_result"
+                 }
+              }
+            }
+          }
+        %{if index < length(dataform_pipelines) -1},%{endif} %{endfor} 
+    ]        
+} 
+}

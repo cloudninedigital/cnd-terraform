@@ -6,7 +6,7 @@ variable "name" {
 variable "documentation" {
   description = "Notification text in alert."
   type = string
-  default = ""
+  default = "An alert occured"
 }
 
 variable "filter" {

@@ -80,3 +80,9 @@ variable "alert_email_addresses" {
     cnd_alerts = "alerting@cloudninedigital.nl"
   }
 }
+
+variable "source_folder_relative_path" {
+  description = "relative path to cloud function code"
+  type        = string
+  default = ".."
+}

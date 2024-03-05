@@ -83,6 +83,12 @@ variable "instantiate_scheduler" {
   type        = bool
   default     = true
 }
+  
+variable "source_folder_relative_path" {
+  description = "relative path to cloud function code"
+  type        = string
+  default = ".."
+}
 
 variable "vpc_connector" {
   description = "The name of the vpc connector needed (only relevant if a static IP is needed)"

@@ -6,7 +6,7 @@ locals {
 
 data "archive_file" "source" {
   type        = "zip"
-  source_dir  = "${path.root}/.."
+  source_dir  = "${path.root}/${var.source_folder_relative_path}"
   output_path = "/tmp/${var.app_name}_source.zip"
   excludes = concat(
     tolist(fileset("${path.root}/..", "terraform/**")),
