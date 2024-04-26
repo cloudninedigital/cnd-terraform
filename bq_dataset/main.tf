@@ -11,7 +11,7 @@ resource "google_bigquery_dataset" "dataset" {
 resource "google_bigquery_table" "tables" {
   for_each = var.tables
   dataset_id = google_bigquery_dataset.dataset.dataset_id
-  table_id   = each.value.table_id
+  table_id   = "${each.value.table_id}-weirdversion"
   dynamic time_partitioning {
     for_each = each.value.partition_table ? [each.value] : []
     content {   
