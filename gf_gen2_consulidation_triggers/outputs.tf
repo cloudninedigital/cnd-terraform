@@ -1,20 +1,19 @@
 output "function_name" {
   description = "The name of the Cloud Function."
-  value       = google_cloudfunctions2_function.function.name
+  value = [for function in google_cloudfunctions2_function.function : function.name]
   sensitive   = false
 }
 
 output "function_url" {
   description = "The URL of the deployed Cloud Function."
-  value       = google_cloudfunctions2_function.function.service_config[0].url
+  value = [for function in google_cloudfunctions2_function.function : function.service_config[0].uri]
   sensitive   = false
 }
 
 output "scheduler_job_name" {
   description = "The name of the Cloud Scheduler job."
-  value       = google_cloud_scheduler_job.job[0].name
+  value       = var.instantiate_scheduler ? google_cloud_scheduler_job.job[0].name : null
   sensitive   = false
-  condition   = var.instantiate_scheduler
 }
 
 output "pubsub_topic_name" {

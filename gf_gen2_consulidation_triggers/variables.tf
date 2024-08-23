@@ -22,6 +22,7 @@ variable "region" {
 variable "trigger_bucket" {
   description = "Name of the bucket that triggers the resource."
   type        = string
+  default     = ""
 }
 
 variable "runtime" {
@@ -34,6 +35,18 @@ variable "available_memory" {
   description = "The amount of memory available for a function. See https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/cloudfunctions2_function"
   type        = string
   default     = "2G"
+}
+
+variable "available_cpu" {
+    description = "The amount of CPU available for a function. See https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/cloudfunctions2_function"
+    type        = string
+    default     = "1"
+}
+
+variable "min_instances" {
+  description = "Minimum amount of instances running at any given time."
+  type        = number
+  default     = 0
 }
 
 variable "max_instances" {
@@ -90,7 +103,7 @@ variable "event_triggers" {
   type = list(object({
     region         = string
     event_type     = string
-    pubsub_topic   = string
+    pubsub_topic   = optional(string)
     retry_policy   = string
     event_filters  = list(object({
       attribute = string
@@ -107,9 +120,15 @@ variable "alert_on_failure" {
 }
 
 variable "alert_email_addresses" {
-  description = "List of email addresses to send notifications to."
-  type        = list(string)
-  default     = [
-    "alerting@cloudninedigital.nl"
-  ]
+  description = "Map of email addresses to send notifications to."
+  type        = map(string)
+  default     = {
+    default = "alerting@cloudninedigital.nl"
+  }
+}
+
+variable "trigger_type" {
+  description = "Type of trigger for the Cloud Function."
+  type        = string
+  default     = ""
 }

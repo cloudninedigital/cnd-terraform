@@ -163,6 +163,49 @@ resource "google_cloud_scheduler_job" "job" {
   ]
 }
 
+data "google_storage_bucket" "trigger" {
+  bq = [{
+    region         = var.region
+    event_type     = "google.cloud.audit.log.v1.written"
+    event_filters  = [
+      {
+        attribute = "resource.type"
+        value     = "bigquery.googleapis.com/Table"
+      },
+      {
+        attribute = "resource.labels.table_id"
+        value     = "test_source_git_module_${terraform.workspace}"
+      }
+    ]
+    retry_policy = "RETRY_POLICY_RETRY"
+  }]
+  
+  gcs_bucket = [
+    {
+      trigger_region         = var.region
+      service_account_email  = google_service_account.account.email
+      retry_policy           = "RETRY_POLICY_DO_NOT_RETRY"
+      event_type             = "google.cloud.storage.object.v1.finalized"
+      event_filters = [
+        {
+          attribute = "bucket"
+          value     = var.trigger_bucket
+        }
+      ]
+    }
+  ]
+  
+  pubsub = [
+    {
+      trigger_region   = var.region
+      event_type       = "google.cloud.pubsub.topic.v1.messagePublished"
+      pubsub_topic     = google_pubsub_topic.topic.id
+      retry_policy     = "RETRY_POLICY_DO_NOT_RETRY"
+    }
+  ]
+}
+
+
 ## Dynamic block for Cloud Functions with event triggers
 resource "google_cloudfunctions2_function" "function" {
   count       = var.instantiate_function ? 1 : 0
@@ -195,7 +238,7 @@ resource "google_cloudfunctions2_function" "function" {
   }
 
   dynamic "event_trigger" {
-    for_each = var.event_triggers
+    for_each = var.trigger_type == "bq" ? data.google_storage_bucket.trigger.bq : var.trigger_type == "gcs_bucket" ? data.google_storage_bucket.trigger.gcs_bucket : var.trigger_type == "pubsub" ? data.google_storage_bucket.trigger.pubsub : []
     content {
       trigger_region = event_trigger.value.region
       event_type     = event_trigger.value.event_type
@@ -226,12 +269,12 @@ resource "google_cloudfunctions2_function" "function" {
   ]
 }
 
-## Alerting Policy Module
-module "alerting_policy" {
-  source              = "../alert_policy"
-  count               = var.alert_on_failure ? 1 : 0
-  name                = "${var.name}-alert-policy"
-  filter              = "resource.type=\"cloud_function\" severity=ERROR resource.labels.function_name=\"${var.name}\""
-  documentation       = "The function ${google_cloudfunctions2_function.function.name} failed. Please check the logs for more information."
-  email_addresses     = var.alert_email_addresses
-}
+# ## Alerting Policy Module
+# module "alerting_policy" {
+#   source              = "../alert_policy"
+#   count               = var.alert_on_failure ? 1 : 0
+#   name                = "${var.name}-alert-policy"
+#   filter              = "resource.type=\"cloud_function\" severity=ERROR resource.labels.function_name=\"${var.name}\""
+#   documentation       = "The function ${google_cloudfunctions2_function.function.name} failed. Please check the logs for more information."
+#   email_addresses     = var.alert_email_addresses
+# }
