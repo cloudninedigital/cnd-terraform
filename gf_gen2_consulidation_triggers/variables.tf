@@ -79,13 +79,6 @@ variable "instantiate_scheduler" {
   default     = false
 }
 
-variable "instantiate_function" {
-  description = "Whether to instantiate the Cloud Function."
-  type        = bool
-  default     = false
-}
-
-
 variable "schedule" {
   description = "The schedule for the Cloud Scheduler job, in cron format."
   type        = string
@@ -96,6 +89,12 @@ variable "function_region" {
   description = "The region for the Cloud Scheduler job."
   type        = string
   default     = "us-central1"
+}
+
+variable "vpc_connector" {
+  description = "The name of the vpc connector needed (only relevant if a static IP is needed)"
+  type        = string
+  default     = ""
 }
 
 variable "event_triggers" {

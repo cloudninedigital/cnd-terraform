@@ -1,4 +1,13 @@
-# Consulidation of gf_gen2_bucket_trigger_gcs_source | gf_gen2_pubsub_source_repo | gf_gen2_bigquery_trigger_source_repo
+# Required provider configuration
+provider "google" {
+  project = var.project
+  region  = var.region
+}
+
+provider "google-beta" {
+  project = var.project
+  region  = var.region
+}
 
 data "google_project" "project" {
   project_id = var.project
@@ -6,6 +15,51 @@ data "google_project" "project" {
 
 locals {
   timestamp = formatdate("YYMMDDhhmmss", timestamp())
+
+  bq = [{
+    trigger_region        = "global"
+    service_account_email = google_service_account.account.email
+    retry_policy          = "RETRY_POLICY_DO_NOT_RETRY"
+    event_type            = "google.cloud.audit.log.v1.written"
+    event_filters = [
+      {
+        attribute = "serviceName"
+        value     = "bigquery.googleapis.com"
+      },
+      {
+        attribute = "methodName"
+        value     = "google.cloud.bigquery.v2.JobService.InsertJob"
+      },
+      {
+        attribute = "resourceName"
+        value     = "projects/${var.project}/datasets/*/tables/*"
+        operator  = "match-path-pattern"
+      }
+    ]
+  }]
+  
+  gcs_bucket = [
+    {
+      trigger_region         = var.region
+      retry_policy           = "RETRY_POLICY_DO_NOT_RETRY"
+      event_type             = "google.cloud.storage.object.v1.finalized"
+      event_filters = [
+        {
+          attribute = "bucket"
+          value     = var.trigger_bucket
+        }
+      ]
+    }
+  ]
+  
+  pubsub = [
+    {
+      trigger_region   = var.region
+      event_type       = "google.cloud.pubsub.topic.v1.messagePublished"
+      pubsub_topic     = google_pubsub_topic.topic.id
+      retry_policy     = "RETRY_POLICY_DO_NOT_RETRY"
+    }
+  ]
 }
 
 ## Dependency APIs that need to be enabled
@@ -51,7 +105,38 @@ resource "google_project_service" "pubsub_api" {
   disable_on_destroy = false
 }
 
-## Permissions for Pub/Sub service account to handle Eventarc events
+## IAM roles for Eventarc and Service Account
+resource "google_project_iam_member" "eventarc_event_receiver" {
+  project = var.project
+  role    = "roles/logging.viewer"  # This role may be necessary to access audit logs
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-eventarc.iam.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "eventarc_log_reader" {
+  project = var.project
+  role    = "roles/cloudfunctions.admin"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-eventarc.iam.gserviceaccount.com"
+}
+
+resource "google_project_iam_member" "eventarc_event_receiver_service_account" {
+  project = var.project
+  role    = "roles/eventarc.eventReceiver"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-eventarc.iam.gserviceaccount.com"
+  depends_on = [google_project_service.eventarc]
+}
+
+resource "google_project_iam_member" "logging_log_writer" {
+  project = var.project
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.account.email}"
+}
+
+resource "google_project_iam_member" "pubsub_subscriber" {
+  project = var.project
+  role    = "roles/pubsub.subscriber"
+  member  = "serviceAccount:${google_service_account.account.email}"
+}
+
 resource "google_project_iam_member" "token_creator_access" {
   project = var.project
   role    = "roles/iam.serviceAccountTokenCreator"
@@ -60,13 +145,11 @@ resource "google_project_iam_member" "token_creator_access" {
   depends_on = [google_project_service.pubsub_api]
 }
 
-## Own service account that creates and runs the cloud function
 resource "google_service_account" "account" {
   account_id   = replace("gcf-${var.name}", "_", "-")
   display_name = "Execution Service Account - used for both the cloud function and eventarc trigger in the test"
 }
 
-## Permissions on the service account used by the function and Eventarc trigger
 resource "google_project_iam_member" "invoking" {
   project = var.project
   role    = "roles/run.invoker"
@@ -77,28 +160,40 @@ resource "google_project_iam_member" "event_receiving" {
   project = var.project
   role    = "roles/eventarc.eventReceiver"
   member  = "serviceAccount:${google_service_account.account.email}"
-  depends_on = [google_project_iam_member.invoking]
+  depends_on = [
+    google_project_iam_member.invoking,
+    google_project_service.eventarc
+  ]
 }
 
 resource "google_project_iam_member" "artifact_registry_reader" {
   project = var.project
   role    = "roles/artifactregistry.reader"
   member  = "serviceAccount:${google_service_account.account.email}"
-  depends_on = [google_project_iam_member.event_receiving]
+  depends_on = [
+    google_project_iam_member.event_receiving,
+    google_project_service.artifact_registry_api
+  ]
 }
 
 resource "google_project_iam_member" "data_editor" {
   project = var.project
   role    = "roles/bigquery.dataEditor"
   member  = "serviceAccount:${google_service_account.account.email}"
-  depends_on = [google_project_iam_member.artifact_registry_reader]
+  depends_on = [
+    google_project_iam_member.artifact_registry_reader,
+    google_project_service.cloud_build_api
+  ]
 }
 
 resource "google_project_iam_member" "job_user" {
   project = var.project
   role    = "roles/bigquery.jobUser"
   member  = "serviceAccount:${google_service_account.account.email}"
-  depends_on = [google_project_iam_member.data_editor]
+  depends_on = [
+    google_project_iam_member.data_editor,
+    google_project_service.cloud_build_api
+  ]
 }
 
 resource "google_project_iam_member" "datastore_user" {
@@ -111,14 +206,20 @@ resource "google_project_iam_member" "object_viewer" {
   project = var.project
   role    = "roles/storage.objectViewer"
   member  = "serviceAccount:${google_service_account.account.email}"
-  depends_on = [google_project_iam_member.job_user]
+  depends_on = [
+    google_project_iam_member.job_user,
+    google_project_service.cloud_functions_api
+  ]
 }
 
 resource "google_project_iam_member" "secret_accessor" {
   project = var.project
   role    = "roles/secretmanager.secretAccessor"
   member  = "serviceAccount:${google_service_account.account.email}"
-  depends_on = [google_project_iam_member.job_user]
+  depends_on = [
+    google_project_iam_member.job_user,
+    google_project_service.cloud_functions_api
+  ]
 }
 
 ## Create and upload source zip to special created functions bucket
@@ -163,52 +264,8 @@ resource "google_cloud_scheduler_job" "job" {
   ]
 }
 
-data "google_storage_bucket" "trigger" {
-  bq = [{
-    region         = var.region
-    event_type     = "google.cloud.audit.log.v1.written"
-    event_filters  = [
-      {
-        attribute = "resource.type"
-        value     = "bigquery.googleapis.com/Table"
-      },
-      {
-        attribute = "resource.labels.table_id"
-        value     = "test_source_git_module_${terraform.workspace}"
-      }
-    ]
-    retry_policy = "RETRY_POLICY_RETRY"
-  }]
-  
-  gcs_bucket = [
-    {
-      trigger_region         = var.region
-      service_account_email  = google_service_account.account.email
-      retry_policy           = "RETRY_POLICY_DO_NOT_RETRY"
-      event_type             = "google.cloud.storage.object.v1.finalized"
-      event_filters = [
-        {
-          attribute = "bucket"
-          value     = var.trigger_bucket
-        }
-      ]
-    }
-  ]
-  
-  pubsub = [
-    {
-      trigger_region   = var.region
-      event_type       = "google.cloud.pubsub.topic.v1.messagePublished"
-      pubsub_topic     = google_pubsub_topic.topic.id
-      retry_policy     = "RETRY_POLICY_DO_NOT_RETRY"
-    }
-  ]
-}
-
-
 ## Dynamic block for Cloud Functions with event triggers
 resource "google_cloudfunctions2_function" "function" {
-  count       = var.instantiate_function ? 1 : 0
   name        = var.name
   location    = var.region
   description = var.description
@@ -233,17 +290,21 @@ resource "google_cloudfunctions2_function" "function" {
     timeout_seconds                = var.timeout
     environment_variables          = var.environment
     ingress_settings               = "ALLOW_INTERNAL_ONLY"
+    vpc_connector                  = var.vpc_connector
+    vpc_connector_egress_settings  = var.vpc_connector == "" ? "" : "ALL_TRAFFIC"
     all_traffic_on_latest_revision = true
     service_account_email          = google_service_account.account.email
   }
 
   dynamic "event_trigger" {
-    for_each = var.trigger_type == "bq" ? data.google_storage_bucket.trigger.bq : var.trigger_type == "gcs_bucket" ? data.google_storage_bucket.trigger.gcs_bucket : var.trigger_type == "pubsub" ? data.google_storage_bucket.trigger.pubsub : []
+    for_each = var.trigger_type == "bq" ? local.bq : var.trigger_type == "gcs_bucket" ? local.gcs_bucket : var.trigger_type == "pubsub" ? local.pubsub : []
+
     content {
-      trigger_region = event_trigger.value.region
-      event_type     = event_trigger.value.event_type
-      pubsub_topic   = event_trigger.value.pubsub_topic != "" ? event_trigger.value.pubsub_topic : null
-      retry_policy   = event_trigger.value.retry_policy
+      event_type   = event_trigger.value.event_type
+      retry_policy = event_trigger.value.retry_policy
+
+      trigger_region = contains(keys(event_trigger.value), "trigger_region") ? event_trigger.value.trigger_region : null
+      pubsub_topic   = contains(keys(event_trigger.value), "pubsub_topic") ? event_trigger.value.pubsub_topic : null
 
       dynamic "event_filters" {
         for_each = event_trigger.value.event_filters != "" ? event_trigger.value.event_filters : []
@@ -260,21 +321,12 @@ resource "google_cloudfunctions2_function" "function" {
     google_project_service.cloud_functions_api,
     google_project_service.run,
     google_project_service.eventarc,
-    google_project_iam_member.event_receiving,
-    google_project_iam_member.artifact_registry_reader,
+    google_project_iam_member.eventarc_event_receiver_service_account,
+    google_project_iam_member.logging_log_writer,
+    google_project_iam_member.pubsub_subscriber,
     google_project_iam_member.token_creator_access,
     google_project_iam_member.data_editor,
     google_project_iam_member.job_user,
     google_project_iam_member.object_viewer
   ]
 }
-
-# ## Alerting Policy Module
-# module "alerting_policy" {
-#   source              = "../alert_policy"
-#   count               = var.alert_on_failure ? 1 : 0
-#   name                = "${var.name}-alert-policy"
-#   filter              = "resource.type=\"cloud_function\" severity=ERROR resource.labels.function_name=\"${var.name}\""
-#   documentation       = "The function ${google_cloudfunctions2_function.function.name} failed. Please check the logs for more information."
-#   email_addresses     = var.alert_email_addresses
-# }
