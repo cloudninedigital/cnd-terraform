@@ -145,6 +145,7 @@ resource "google_project_iam_member" "token_creator_access" {
   depends_on = [google_project_service.pubsub_api]
 }
 
+## Create and configure service account
 resource "google_service_account" "account" {
   account_id   = replace("gcf-${var.name}", "_", "-")
   display_name = "Execution Service Account - used for both the cloud function and eventarc trigger in the test"
