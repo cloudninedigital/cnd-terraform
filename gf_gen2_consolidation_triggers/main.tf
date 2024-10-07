@@ -298,7 +298,7 @@ resource "google_cloudfunctions2_function" "function" {
   }
 
   dynamic "event_trigger" {
-    for_each = var.trigger_type == "bq" ? local.bq : var.trigger_type == "gcs_bucket" ? local.gcs_bucket : var.trigger_type == "pubsub" ? local.pubsub : []
+    for_each = var.trigger_type == "bq" ? local.bq : var.trigger_type == "gcs" ? local.gcs_bucket : local.pubsub
 
     content {
       event_type   = event_trigger.value.event_type
