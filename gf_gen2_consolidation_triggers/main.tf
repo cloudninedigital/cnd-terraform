@@ -41,8 +41,10 @@ locals {
   gcs_bucket = [
     {
       trigger_region         = var.region
+      service_account_email  = google_service_account.account.email
       retry_policy           = "RETRY_POLICY_DO_NOT_RETRY"
       event_type             = "google.cloud.storage.object.v1.finalized"
+      pubsub_topic = ""
       event_filters = [
         {
           attribute = "bucket"
@@ -55,9 +57,16 @@ locals {
   pubsub = [
     {
       trigger_region   = var.region
+      service_account_email  = google_service_account.account.email
       event_type       = "google.cloud.pubsub.topic.v1.messagePublished"
       pubsub_topic     = google_pubsub_topic.topic.id
       retry_policy     = "RETRY_POLICY_DO_NOT_RETRY"
+      event_filters = [
+        {
+          attribute = "nonexistant"
+          value     = "nonexistant"
+        }
+      ]
     }
   ]
 }
@@ -308,7 +317,7 @@ resource "google_cloudfunctions2_function" "function" {
       pubsub_topic   = contains(keys(event_trigger.value), "pubsub_topic") ? event_trigger.value.pubsub_topic : null
 
       dynamic "event_filters" {
-        for_each = event_trigger.value.event_filters != "" ? event_trigger.value.event_filters : []
+        for_each = var.trigger_type != "pubsub" ? event_trigger.value.event_filters : []
         content {
           attribute = event_filters.value.attribute
           value     = event_filters.value.value
