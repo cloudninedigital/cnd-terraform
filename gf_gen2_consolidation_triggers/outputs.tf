@@ -1,6 +1,6 @@
 output "cloud_function_name" {
   description = "The name of the Cloud Function created."
-  value       = google_cloudfunctions2_function.function.name
+  value       = var.trigger_type == "bq" ? google_cloudfunctions2_function.bq_function[0].name : var.trigger_type == "gcs" ? google_cloudfunctions2_function.gcs_function[0].name : google_cloudfunctions2_function.pubsub_function[0].name
 }
 
 output "cloud_function_url" {
