@@ -5,7 +5,7 @@ output "cloud_function_name" {
 
 output "cloud_function_url" {
   description = "The URL of the Cloud Function. Adjust the URL format if needed."
-  value       = "https://REGION-run.googleapis.com/apis/run.googleapis.com/v1/projects/${var.project}/locations/${var.region}/services/${google_cloudfunctions2_function.function.name}"
+  value       = "https://REGION-run.googleapis.com/apis/run.googleapis.com/v1/projects/${var.project}/locations/${var.region}/services/${var.trigger_type == "bq" ? google_cloudfunctions2_function.bq_function[0].name : var.trigger_type == "gcs" ? google_cloudfunctions2_function.gcs_function[0].name : google_cloudfunctions2_function.pubsub_function[0].name}"
 }
 
 output "cloud_function_service_account_email" {
