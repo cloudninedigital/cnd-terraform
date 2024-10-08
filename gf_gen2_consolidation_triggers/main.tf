@@ -15,60 +15,6 @@ data "google_project" "project" {
 
 locals {
   timestamp = formatdate("YYMMDDhhmmss", timestamp())
-
-  bq = [{
-    trigger_region        = "global"
-    service_account_email = google_service_account.account.email
-    retry_policy          = "RETRY_POLICY_DO_NOT_RETRY"
-    event_type            = "google.cloud.audit.log.v1.written"
-    event_filters = [
-      {
-        attribute = "serviceName"
-        value     = "bigquery.googleapis.com"
-      },
-      {
-        attribute = "methodName"
-        value     = "google.cloud.bigquery.v2.JobService.InsertJob"
-      },
-      {
-        attribute = "resourceName"
-        value     = "projects/${var.project}/datasets/*/tables/*"
-        operator  = "match-path-pattern"
-      }
-    ]
-  }]
-  
-  gcs_bucket = [
-    {
-      trigger_region         = var.region
-      service_account_email  = google_service_account.account.email
-      retry_policy           = "RETRY_POLICY_DO_NOT_RETRY"
-      event_type             = "google.cloud.storage.object.v1.finalized"
-      pubsub_topic = ""
-      event_filters = [
-        {
-          attribute = "bucket"
-          value     = var.trigger_bucket
-        }
-      ]
-    }
-  ]
-  
-  pubsub = [
-    {
-      trigger_region   = var.region
-      service_account_email  = google_service_account.account.email
-      event_type       = "google.cloud.pubsub.topic.v1.messagePublished"
-      pubsub_topic     = google_pubsub_topic.topic.id
-      retry_policy     = "RETRY_POLICY_DO_NOT_RETRY"
-      event_filters = [
-        {
-          attribute = "nonexistant"
-          value     = "nonexistant"
-        }
-      ]
-    }
-  ]
 }
 
 ## Dependency APIs that need to be enabled
@@ -275,7 +221,8 @@ resource "google_cloud_scheduler_job" "job" {
 }
 
 ## Dynamic block for Cloud Functions with event triggers
-resource "google_cloudfunctions2_function" "function" {
+resource "google_cloudfunctions2_function" "bq_function" {
+  count = var.trigger_type == "bq" ? 1 : 0
   name        = var.name
   location    = var.region
   description = var.description
@@ -306,25 +253,145 @@ resource "google_cloudfunctions2_function" "function" {
     service_account_email          = google_service_account.account.email
   }
 
-  dynamic "event_trigger" {
-    for_each = var.trigger_type == "bq" ? local.bq : var.trigger_type == "gcs" ? local.gcs_bucket : local.pubsub
+  event_trigger {
+      retry_policy          = "RETRY_POLICY_DO_NOT_RETRY"
+      event_type            = "google.cloud.audit.log.v1.written"
+      service_account_email = google_service_account.account.email
+      trigger_region        = "global"
 
-    content {
-      event_type   = event_trigger.value.event_type
-      retry_policy = event_trigger.value.retry_policy
+    event_filters {
+      attribute = "serviceName"
+      value     = "bigquery.googleapis.com"
+    }
+    event_filters {
+      attribute = "methodName"
+      value     = "google.cloud.bigquery.v2.JobService.InsertJob"
+    }
+    event_filters {
+      attribute = "resourceName"
+      value     = "projects/${var.project}/datasets/*/tables/*"
+      operator  = "match-path-pattern"
+    }
+    }
+  
 
-      trigger_region = contains(keys(event_trigger.value), "trigger_region") ? event_trigger.value.trigger_region : null
-      pubsub_topic   = contains(keys(event_trigger.value), "pubsub_topic") ? event_trigger.value.pubsub_topic : null
+  depends_on = [
+    google_project_service.cloud_build_api,
+    google_project_service.cloud_functions_api,
+    google_project_service.run,
+    google_project_service.eventarc,
+    google_project_iam_member.eventarc_event_receiver_service_account,
+    google_project_iam_member.logging_log_writer,
+    google_project_iam_member.pubsub_subscriber,
+    google_project_iam_member.token_creator_access,
+    google_project_iam_member.data_editor,
+    google_project_iam_member.job_user,
+    google_project_iam_member.object_viewer
+  ]
+}
 
-      dynamic "event_filters" {
-        for_each = var.trigger_type != "pubsub" ? event_trigger.value.event_filters : []
-        content {
-          attribute = event_filters.value.attribute
-          value     = event_filters.value.value
-        }
+
+resource "google_cloudfunctions2_function" "gcs_function" {
+  count = var.trigger_type == "gcs" ? 1 : 0
+  name        = var.name
+  location    = var.region
+  description = var.description
+
+  build_config {
+    runtime               = var.runtime
+    entry_point           = var.entry_point
+    environment_variables = var.environment
+    source {
+      storage_source {
+        bucket = google_storage_bucket.bucket.name
+        object = google_storage_bucket_object.archive.name
       }
     }
   }
+
+  service_config {
+    max_instance_count             = var.max_instances
+    min_instance_count             = var.min_instances
+    available_memory               = var.available_memory
+    available_cpu                  = var.available_cpu
+    timeout_seconds                = var.timeout
+    environment_variables          = var.environment
+    ingress_settings               = "ALLOW_INTERNAL_ONLY"
+    vpc_connector                  = var.vpc_connector
+    vpc_connector_egress_settings  = var.vpc_connector == "" ? "" : "ALL_TRAFFIC"
+    all_traffic_on_latest_revision = true
+    service_account_email          = google_service_account.account.email
+  }
+
+  event_trigger {
+      event_type   = "google.cloud.storage.object.v1.finalized"
+      retry_policy = "RETRY_POLICY_DO_NOT_RETRY"
+
+      trigger_region = var.region
+
+      event_filters {
+          attribute = "bucket"
+          value     = var.trigger_bucket
+      }
+    }
+
+  depends_on = [
+    google_project_service.cloud_build_api,
+    google_project_service.cloud_functions_api,
+    google_project_service.run,
+    google_project_service.eventarc,
+    google_project_iam_member.eventarc_event_receiver_service_account,
+    google_project_iam_member.logging_log_writer,
+    google_project_iam_member.pubsub_subscriber,
+    google_project_iam_member.token_creator_access,
+    google_project_iam_member.data_editor,
+    google_project_iam_member.job_user,
+    google_project_iam_member.object_viewer
+  ]
+}
+
+
+
+
+resource "google_cloudfunctions2_function" "pubsub_function" {
+  count = var.trigger_type == "pubsub" ? 1 : 0
+  name        = var.name
+  location    = var.region
+  description = var.description
+
+  build_config {
+    runtime               = var.runtime
+    entry_point           = var.entry_point
+    environment_variables = var.environment
+    source {
+      storage_source {
+        bucket = google_storage_bucket.bucket.name
+        object = google_storage_bucket_object.archive.name
+      }
+    }
+  }
+
+  service_config {
+    max_instance_count             = var.max_instances
+    min_instance_count             = var.min_instances
+    available_memory               = var.available_memory
+    available_cpu                  = var.available_cpu
+    timeout_seconds                = var.timeout
+    environment_variables          = var.environment
+    ingress_settings               = "ALLOW_INTERNAL_ONLY"
+    vpc_connector                  = var.vpc_connector
+    vpc_connector_egress_settings  = var.vpc_connector == "" ? "" : "ALL_TRAFFIC"
+    all_traffic_on_latest_revision = true
+    service_account_email          = google_service_account.account.email
+  }
+
+  event_trigger {
+      event_type   = "google.cloud.pubsub.topic.v1.messagePublished"
+      retry_policy = "RETRY_POLICY_DO_NOT_RETRY"
+
+      trigger_region = var.region
+      pubsub_topic   = google_pubsub_topic.topic.id
+    }
 
   depends_on = [
     google_project_service.cloud_build_api,
