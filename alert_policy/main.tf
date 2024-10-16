@@ -2,6 +2,7 @@ resource "google_monitoring_notification_channel" "email" {
   for_each = var.email_addresses
   display_name = "${var.name}-email-alert-channel-${each.key}"
   type         = "email"
+  project = var.project
   labels = {
     email_address = each.value
   }
@@ -10,6 +11,7 @@ resource "google_monitoring_notification_channel" "email" {
 
 resource "google_monitoring_alert_policy" "main" {
   display_name = var.name
+  project = var.project
   combiner     = "OR"
   conditions {
     display_name = "${var.name}-condition"

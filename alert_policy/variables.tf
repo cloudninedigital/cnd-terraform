@@ -3,6 +3,11 @@ variable "name" {
   type = string
 }
 
+variable "project" {
+  description = "name of project"
+  type = string
+}
+
 variable "documentation" {
   description = "Notification text in alert."
   type = string
