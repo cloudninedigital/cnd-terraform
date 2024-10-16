@@ -19,7 +19,8 @@
                     "gitCommitish": "main",
                     "codeCompilationConfig": {
                         "vars": {
-                            "table": "$${text.split(text.split(event.data.protoPayload.resourceName, \"datasets/\")[1], \"/tables\")[0] + \".\" + text.split(event.data.protoPayload.resourceName, \"/tables/\")[1]}"
+                            "table": "$${text.split(text.split(event.data.protoPayload.resourceName, \"projects/\")[1], \"/datasets\")[0] + \".\" + text.split(text.split(event.data.protoPayload.resourceName, \"datasets/\")[1], \"/tables\")[0] + \".\" + text.split(event.data.protoPayload.resourceName, \"/tables/\")[1]}",
+                            "stage": "${stage}"
                         }
                     }
                 },
@@ -58,6 +59,41 @@
             "result": "step_${index}_workflow_invocation_result" }
         }, 
         {
+        "step_${index}_get_invocation_result": {
+            "call": "http.get",
+            "args": {
+                "url": "$${\"https://dataform.googleapis.com/v1beta1/\" + step_${index}_workflow_invocation_result.body.name}",
+                "auth": {
+                    "type": "OAuth2"
+                }
+            },
+            "result": "step_${index}_workflow_status_result" }
+        }, 
+        {
+        "step_${index}_wait_for_results": {
+            "call": "sys.sleep",
+            "args": {
+                "seconds": 10
+            },
+            "next": "step_${index}_check_invocation_results"}
+        }, 
+        {
+        "step_${index}_check_invocation_results": {
+            "switch": [{
+                "condition": "$${step_${index}_workflow_status_result.body.state == \"RUNNING\"}",
+                "next": "step_${index}_get_invocation_result"
+            },
+            {
+                "condition": "$${step_${index}_workflow_status_result.body.state == \"CANCELLED\" or step_${index}_workflow_status_result.body.state == \"CANCELING\" or step_${index}_workflow_status_result.body.state == \"FAILED\" }",
+                "steps": [{
+                    "step_${index}_raiseException": {
+                        "raise": "$${\"Error while running Dataform workflow :\" + \" \" +  step_${index}_workflow_status_result.body.name + \" \" + step_${index}_workflow_status_result.body.state}"
+                    }
+                }]
+            }]
+        }
+        },
+        {
             "logStep_${index}_${dp.name}": {
               "call": "sys.log",
               "args": {
@@ -65,7 +101,7 @@
                 "json": {
                     "step": "step_${index}",
                     "pipeline": "${dp.name} - ${dp.tag}",
-                    "output": "$$step_${index}_workflow_invocation_result"
+                    "output": "$$step_${index}_workflow_status_result"
                  }
               }
             }

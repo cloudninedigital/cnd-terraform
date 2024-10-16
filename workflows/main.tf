@@ -13,6 +13,7 @@ locals {
 
 # Enable IAM API
 resource "google_project_service" "iam" {
+  project = var.project
   provider           = google-beta
   service            = "iam.googleapis.com"
   disable_on_destroy = false
@@ -20,6 +21,7 @@ resource "google_project_service" "iam" {
 
 # Cloud scheduler api
 resource "google_project_service" "cloudscheduler" {
+  project = var.project
   provider           = google-beta
   service            = "cloudscheduler.googleapis.com"
   disable_on_destroy = false
@@ -28,6 +30,7 @@ resource "google_project_service" "cloudscheduler" {
 
 # Create a service account for Eventarc trigger and Workflows
 resource "google_service_account" "workflows_service_account" {
+  project = var.project
   provider     = google-beta
   account_id   = var.service_account_name
   display_name = "Workflows Service Account"
@@ -39,6 +42,12 @@ resource "google_project_iam_member" "roles" {
   for_each = toset(local.workflows_sa_roles)
   project  = var.project
   role     = each.key
+  member   = "serviceAccount:${google_service_account.workflows_service_account.email}"
+}
+
+resource "google_project_iam_member" "dataform_executor" {
+  project  = var.dataform_project
+  role     = "roles/dataform.editor"
   member   = "serviceAccount:${google_service_account.workflows_service_account.email}"
 }
 
@@ -93,6 +102,7 @@ data "google_project" "project" {
 
 # Enable Eventarc API
 resource "google_project_service" "eventarc" {
+  project = var.project
   count              = var.trigger_type == "bq" || var.trigger_type == "gcs" ? 1 : 0
   provider           = google-beta
   service            = "eventarc.googleapis.com"
@@ -101,6 +111,7 @@ resource "google_project_service" "eventarc" {
 
 # Enable Pub/Sub API
 resource "google_project_service" "pubsub" {
+  project = var.project
   provider           = google-beta
   service            = "pubsub.googleapis.com"
   disable_on_destroy = false
@@ -108,6 +119,7 @@ resource "google_project_service" "pubsub" {
 
 # Enable Workflows API
 resource "google_project_service" "workflows" {
+  project = var.project
   provider           = google-beta
   service            = "workflows.googleapis.com"
   disable_on_destroy = false
@@ -123,12 +135,14 @@ resource "google_workflows_workflow" "workflows_instance" {
   name            = var.name
   provider        = google-beta
   region          = var.region
+  project = var.project
   description     = var.description
   service_account = google_service_account.workflows_service_account.email
   # Imported main workflow template file
   source_contents = var.workflow_type == "dataform" ? templatefile("modules/workflows/workflow_templates/workflows_dataform_template.tftpl", {
-    project        = var.project,
+    project        = var.dataform_project,
     region         = var.dataform_region,
+    stage          = var.stage,
     dataform_pipelines = var.dataform_pipelines,
     trigger_type   = var.trigger_type
   }):  templatefile("modules/workflows/workflow_templates/workflows_cf_template.tftpl", {
@@ -153,6 +167,7 @@ resource "google_workflows_workflow" "workflows_instance" {
 resource "google_eventarc_trigger" "trigger_gbq_tf" {
   count    = var.trigger_type == "bq" ? 1 : 0
   name     = replace("${var.name}-trigger", "_", "-")
+  project = var.project
   provider = google-beta
   location = "global"
   matching_criteria {
@@ -205,6 +220,7 @@ resource "google_storage_bucket" "workflows_trigger_bucket" {
 
 # Create an Eventarc trigger routing GCS events to Workflows
 resource "google_eventarc_trigger" "trigger_gcs_tf" {
+  project = var.project
   count    = var.trigger_type == "gcs" ? 1 : 0
   name     = replace("${var.name}-trigger", "_", "-")
   provider = google-beta
@@ -270,16 +286,17 @@ resource "google_cloud_scheduler_job" "workflow" {
 
 ### END schedule TRIGGER SPECIFIC PART
 
-module "bq_executor_alerting_policy" {
-  source = "../bq_executor_alert_policy"
-  count  = ((var.trigger_type == "bq") && var.alert_on_failure) ? 1 : 0
-  name   = "${var.name}_bq_executor_alert"
-  email_addresses = var.alert_email_addresses
-}
+# module "bq_executor_alerting_policy" {
+#   source = "../bq_executor_alert_policy"
+#   count  = ((var.trigger_type == "bq") && var.alert_on_failure) ? 1 : 0
+#   name   = "${var.name}_bq_executor_alert"
+#   email_addresses = var.alert_email_addresses
+# }
 
 ## alerting policy
 module "alerting_policy" {
   source = "../alert_policy"
+  project = var.project
   count  = ((var.trigger_type != "bq") && var.alert_on_failure) ? 1 : 0
   name   = "${var.name}-alert-policy"
   filter = "resource.type=\"workflows.googleapis.com/Workflow\" severity=ERROR resource.labels.workflow_id=\"${var.name}\""

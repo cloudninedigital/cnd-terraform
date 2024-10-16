@@ -31,6 +31,18 @@ variable "cloudfunctions" {
   default     = [{name: "example_cf", table_updated: "some_dataset.iets"}]
 }
 
+variable "stage" {
+  description = "development stage to be used"
+  type        = string
+  default     = "dev"
+}
+ 
+variable "dataform_project" {
+  description = "project in which dataform runs"
+  type = string
+  default = "n.a."
+}
+
 variable "dataform_pipelines" {
   description = "list of dataform pipeline maps to execute in the flow"
   type        = list
