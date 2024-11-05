@@ -169,4 +169,5 @@ module "alerting_policy" {
   filter = "resource.type=\"cloud_function\" severity=ERROR resource.labels.function_name=\"${var.name}\""
   documentation = "The function ${google_cloudfunctions2_function.function.name} failed. Please check the logs for more information."
   email_addresses = var.alert_email_addresses
+  project = var.project
 }
