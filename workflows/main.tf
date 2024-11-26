@@ -139,13 +139,13 @@ resource "google_workflows_workflow" "workflows_instance" {
   description     = var.description
   service_account = google_service_account.workflows_service_account.email
   # Imported main workflow template file
-  source_contents = var.workflow_type == "dataform" ? templatefile("modules/workflows/workflow_templates/workflows_dataform_template.tftpl", {
+  source_contents = var.workflow_type == "dataform" ? templatefile("workflow_templates/workflows_dataform_template.tftpl", {
     project        = var.dataform_project,
     region         = var.dataform_region,
     stage          = var.stage,
     dataform_pipelines = var.dataform_pipelines,
     trigger_type   = var.trigger_type
-  }):  templatefile("modules/workflows/workflow_templates/workflows_cf_template.tftpl", {
+  }):  templatefile("workflow_templates/workflows_cf_template.tftpl", {
     project        = var.project,
     region         = var.functions_region,
     cloudfunctions = var.cloudfunctions,
