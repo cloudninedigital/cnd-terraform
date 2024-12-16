@@ -4,10 +4,10 @@ provider "google" {
   region  = var.region
 }
 
-provider "google-beta" {
-  project = var.project
-  region  = var.region
-}
+# provider "google-beta" {
+#   project = var.project
+#   region  = var.region
+# }
 
 data "google_project" "project" {
   project_id = var.project
@@ -31,13 +31,13 @@ resource "google_project_service" "cloud_functions_api" {
 }
 
 resource "google_project_service" "run" {
-  provider           = google-beta
+  # provider           = google-beta
   service            = "run.googleapis.com"
   disable_on_destroy = false
 }
 
 resource "google_project_service" "eventarc" {
-  provider           = google-beta
+  # provider           = google-beta
   service            = "eventarc.googleapis.com"
   disable_on_destroy = false
 }
