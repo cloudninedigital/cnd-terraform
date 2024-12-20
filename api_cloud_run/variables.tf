@@ -11,6 +11,12 @@ variable "image" {
   description = "URL of docker image"
 }
 
+variable "environment" {
+  description = "Environment variables to be forwarded to function."
+  type        = list(map(string))
+  default     = []
+}
+
 variable "region" {
   description = "Region where function is living"
   default = "europe-west4"
