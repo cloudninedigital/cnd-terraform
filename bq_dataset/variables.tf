@@ -15,6 +15,11 @@ variable "friendly_name" {
     default = ""
 }
 
+variable "project" {
+    description = "Project name"
+    type = string
+}
+
 variable "description" {
     description = "The description of the dataset to create"
     type = string
