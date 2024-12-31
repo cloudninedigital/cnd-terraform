@@ -422,8 +422,8 @@ resource "google_cloudfunctions2_function" "http_function" {
     environment_variables = var.environment
     source {
       storage_source {
-        bucket = module.source_code.bucket_name
-        object = module.source_code.bucket_object_name
+        bucket = google_storage_bucket.bucket.name
+        object = google_storage_bucket_object.archive.name
       }
     }
   }
