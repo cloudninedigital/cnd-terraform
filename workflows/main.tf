@@ -46,6 +46,7 @@ resource "google_project_iam_member" "roles" {
 }
 
 resource "google_project_iam_member" "dataform_executor" {
+  count = var.workflow_type == "dataform" ? 1 : 0
   project  = var.dataform_project
   role     = "roles/dataform.editor"
   member   = "serviceAccount:${google_service_account.workflows_service_account.email}"
