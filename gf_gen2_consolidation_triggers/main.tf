@@ -64,19 +64,19 @@ resource "google_project_service" "pubsub_api" {
 resource "google_project_iam_member" "eventarc_event_receiver" {
   project = var.project
   role    = "roles/logging.viewer"  # This role may be necessary to access audit logs
-  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-eventarc.iam.gserviceaccount.com"
+  member  = "serviceAccount:${google_service_account.account.email}"
 }
 
 resource "google_project_iam_member" "eventarc_log_reader" {
   project = var.project
   role    = "roles/cloudfunctions.admin"
-  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-eventarc.iam.gserviceaccount.com"
+  member  = "serviceAccount:${google_service_account.account.email}"
 }
 
 resource "google_project_iam_member" "eventarc_event_receiver_service_account" {
   project = var.project
   role    = "roles/eventarc.eventReceiver"
-  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-eventarc.iam.gserviceaccount.com"
+  member  = "serviceAccount:${google_service_account.account.email}"
   depends_on = [google_project_service.eventarc]
 }
 
