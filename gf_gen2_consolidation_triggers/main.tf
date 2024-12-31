@@ -407,3 +407,41 @@ resource "google_cloudfunctions2_function" "pubsub_function" {
     google_project_iam_member.object_viewer
   ]
 }
+
+
+resource "google_cloudfunctions2_function" "http_function" {
+  count= var.trigger_type == "http" ? 1 : 0
+  name        = var.name
+  location    = var.region
+  description = var.description
+  project = var.project
+  
+  build_config {
+    runtime     = var.runtime
+    entry_point = var.entry_point
+    environment_variables = var.environment
+    source {
+      storage_source {
+        bucket = module.source_code.bucket_name
+        object = module.source_code.bucket_object_name
+      }
+    }
+  }
+
+  service_config {
+    max_instance_count = var.max_instances
+    min_instance_count = var.min_instances
+    available_memory   = var.available_memory
+    timeout_seconds    = var.timeout
+    ingress_settings               = "ALLOW_INTERNAL_ONLY"
+    vpc_connector                  = var.vpc_connector
+    vpc_connector_egress_settings  = var.vpc_connector == "" ? "" : "ALL_TRAFFIC"
+    environment_variables = var.environment
+    all_traffic_on_latest_revision = true
+    service_account_email = google_service_account.account.email
+  }
+
+  depends_on = [google_project_service.cloud_build_api, google_project_service.cloud_functions_api,
+  google_service_account.account]
+
+}
