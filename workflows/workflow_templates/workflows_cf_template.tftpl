@@ -16,6 +16,9 @@
                 %{if lookup(cf, "table_updated", "") != ""}
                     "table_updated": "${cf.table_updated}",
                 %{endif}
+                %{if lookup(cf, "custom_data", "") != ""}
+                    "custom_data": "${cf.custom_data}",
+                %{endif}
                %{if index > 0}
                     "previous_output": "$${step_${index - 1}_return_value.body}"
                 %{endif}
