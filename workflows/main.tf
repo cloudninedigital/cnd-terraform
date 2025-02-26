@@ -81,6 +81,7 @@ resource "google_project_iam_member" "eventarc_receiver_binding" {
   depends_on = [google_service_account.workflows_service_account]
 }
 
+
 resource "google_project_iam_member" "cloudscheduler_admin_binding" {
   count    = var.trigger_type == "schedule" ? 1 : 0
   provider = google-beta
@@ -106,6 +107,8 @@ data "google_project" "project" {
   provider   = google-beta
   project_id = var.project
 }
+
+
 
 # Enable Eventarc API
 resource "google_project_service" "eventarc" {

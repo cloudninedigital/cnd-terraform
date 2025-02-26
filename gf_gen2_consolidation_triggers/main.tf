@@ -168,6 +168,16 @@ resource "google_project_iam_member" "object_viewer" {
   ]
 }
 
+resource "google_project_iam_member" "object_creator" {
+  project = var.project
+  role    = "roles/storage.objectCreator"
+  member  = "serviceAccount:${google_service_account.account.email}"
+  depends_on = [
+    google_project_iam_member.job_user,
+    google_project_service.cloud_functions_api
+  ]
+}
+
 resource "google_project_iam_member" "secret_accessor" {
   project = var.project
   role    = "roles/secretmanager.secretAccessor"
