@@ -168,9 +168,9 @@ resource "google_project_iam_member" "object_viewer" {
   ]
 }
 
-resource "google_project_iam_member" "object_creator" {
+resource "google_project_iam_member" "object_admin" {
   project = var.project
-  role    = "roles/storage.objectCreator"
+  role    = "roles/storage.objectAdmin"
   member  = "serviceAccount:${google_service_account.account.email}"
   depends_on = [
     google_project_iam_member.job_user,
