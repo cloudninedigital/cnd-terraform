@@ -49,6 +49,12 @@ variable "dataform_pipelines" {
   default     = [{name: "example_dp", tag: "example_tag", repository: "dataform_repo_example"}]
 }
 
+variable "create_trigger_bucket" {
+  description = "whether or not to create the trigger bucket"
+  type = bool
+  default=false
+}
+
 variable "workflow_type" {
   description= "type of workflow to be triggered (determines the template being used). options are 'cf' (for cloud_functions) and 'dataform'"
   type = string

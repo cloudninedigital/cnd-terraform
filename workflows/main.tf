@@ -210,7 +210,7 @@ resource "google_eventarc_trigger" "trigger_gbq_tf" {
 ### START gcs TRIGGER SPECIFIC PART
 
 resource "google_storage_bucket" "workflows_trigger_bucket" {
-  count         = var.trigger_type == "gcs" ? 1 : 0
+  count         = var.trigger_type == "gcs" && var.create_trigger_bucket ? 1 : 0
   name          = var.bucket_name
   location      = var.region
   storage_class = "STANDARD"
