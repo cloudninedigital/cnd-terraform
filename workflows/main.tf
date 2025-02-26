@@ -225,7 +225,7 @@ resource "google_eventarc_trigger" "trigger_gcs_tf" {
   count    = var.trigger_type == "gcs" ? 1 : 0
   name     = replace("${var.name}-trigger", "_", "-")
   provider = google-beta
-  location = "global"
+  location = "eu"
   matching_criteria {
     attribute = "type"
     value     = "google.cloud.storage.object.v1.finalized"
