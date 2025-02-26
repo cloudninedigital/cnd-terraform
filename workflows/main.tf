@@ -52,10 +52,10 @@ resource "google_project_iam_member" "dataform_executor" {
   member   = "serviceAccount:${google_service_account.workflows_service_account.email}"
 }
 
-resource "google_project_iam_member" "oubsub_publisher" {
+resource "google_project_iam_member" "pubsub_publisher" {
   project  = var.project
   role     = "roles/pubsub.publisher"
-  member   = "serviceAccount:${google_service_account.workflows_service_account.email}"
+  member   = "serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"
 }
 
 resource "google_project_iam_member" "token-creator-iam" {
