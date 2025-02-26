@@ -233,7 +233,7 @@ resource "google_eventarc_trigger" "trigger_gcs_tf" {
 
   matching_criteria {
     attribute = "bucket"
-    value     = google_storage_bucket.workflows_trigger_bucket[0].id
+    value     = var.create_trigger_bucket ? google_storage_bucket.workflows_trigger_bucket[0].id : var.bucket_name
   }
 
   destination {
