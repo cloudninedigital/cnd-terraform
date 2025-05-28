@@ -53,6 +53,7 @@ resource "google_project_iam_member" "dataform_executor" {
 }
 
 resource "google_project_iam_member" "pubsub_publisher" {
+  count = var.trigger_type == "gcs" ? 1 : 0
   project  = var.project
   role     = "roles/pubsub.publisher"
   member   = "serviceAccount:service-${data.google_project.project.number}@gs-project-accounts.iam.gserviceaccount.com"
