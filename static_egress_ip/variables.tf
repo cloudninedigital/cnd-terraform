@@ -40,3 +40,8 @@ variable "max_instances" {
     default= 10
 }
 
+variable "number_of_static_ips" {
+  type        = number
+  default     = 1
+  description = "Number of static IPs to reserve for NAT gateway. Up this number if you run into timeouts with NAT gateway (OUT_OF_RESOURCES errors)."
+}

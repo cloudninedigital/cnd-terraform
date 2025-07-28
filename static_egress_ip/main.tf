@@ -74,9 +74,10 @@ resource "google_compute_router" "router" {
                  google_compute_network.net ]
 }
 
-resource "google_compute_address" "address" {
-  name   = "${var.name}-ip"
+resource "google_compute_address" "nat_ips" {
+  for_each = { for i in range(var.number_of_static_ips) : i => "${var.name}-ip-${i}" }
   project= var.project
+  name   = each.value
   region = google_compute_subnetwork.subnet.region
   depends_on = [ google_project_service.compute_api,
                  google_compute_subnetwork.subnet ]
@@ -89,7 +90,7 @@ resource "google_compute_router_nat" "nat_manual" {
   region = google_compute_router.router.region
 
   nat_ip_allocate_option = "MANUAL_ONLY"
-  nat_ips                = [google_compute_address.address.self_link]
+  nat_ips                = [for ip in google_compute_address.nat_ips : ip.self_link]
 
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
   depends_on = [ google_project_service.compute_api,
