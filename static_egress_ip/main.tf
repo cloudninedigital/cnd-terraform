@@ -97,6 +97,6 @@ resource "google_compute_router_nat" "nat_manual" {
                  google_compute_network.net,
                  google_compute_subnetwork.subnet,
                  google_compute_router.router,
-                 google_compute_address.address ]
+                 google_compute_address.nat_ips ]
 }
 
