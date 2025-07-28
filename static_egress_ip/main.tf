@@ -88,7 +88,7 @@ resource "google_compute_router_nat" "nat_manual" {
   project = var.project
   router = google_compute_router.router.name
   region = google_compute_router.router.region
-
+  min_ports_per_vm = 2048
   nat_ip_allocate_option = "MANUAL_ONLY"
   nat_ips                = [for ip in google_compute_address.nat_ips : ip.self_link]
 
