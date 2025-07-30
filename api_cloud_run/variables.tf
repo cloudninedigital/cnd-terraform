@@ -36,3 +36,24 @@ variable "container_port" {
   description = "port to use for container incoming traffic"
   default = "8080"
 }
+
+variable "max_instance_request_concurrency" {
+  description = "max number of concurrent requests allowed on one instance"
+  default = 80
+}
+
+variable "memory" {
+  description = "amount of memory allocated per instance"
+  default = "512Mi"
+}
+
+variable "domain" {
+  description = "custom domain to map to"
+  default = ""
+}
+
+variable "mapping_paths" {
+  description = "path to map to different services"
+  type = list(string)
+  default = ["*"]
+}
