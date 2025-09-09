@@ -148,6 +148,12 @@ resource "google_cloud_run_v2_job" "default" {
       service_account = google_service_account.account.email
       containers {
         image = var.image
+        resources {
+        limits = {
+            cpu    = var.cpu
+            memory = var.memory
+          }
+        }
       }
       timeout = var.timeout_seconds
       dynamic "node_selector" {
@@ -156,6 +162,26 @@ resource "google_cloud_run_v2_job" "default" {
         accelerator = "nvidia-l4"
       }
       }
+
+      
+
+      dynamic env {
+        for_each = var.environment
+        content {   
+        name = env.value.name
+        value = env.value.value
+        }
+      }
+
+      dynamic vpc_access{
+        for_each = var.vpc_connector == "" ? [] : [1]
+        content { 
+        connector = var.vpc_connector
+        egress = "ALL_TRAFFIC"
+      }
+      }
+
+
       gpu_zonal_redundancy_disabled = true
     }
   }
