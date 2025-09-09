@@ -22,14 +22,9 @@ variable "region" {
   default = "europe-west4"
 }
 
-variable "max_instance_count" {
-  description = "maximum amount of instances"
-  default = 6
-}
-
-variable "min_instance_count" {
-  description = "minimum amount of instances"
-  default = 0
+variable "cpu" {
+  description = "amount of cpus allocated per instance"
+  default = 1
 }
 
 variable "container_port" {
@@ -68,4 +63,10 @@ variable "timeout_seconds" {
   description = "Job timeout in seconds"
   type        = string
   default     = "14400s"
+}
+
+variable "vpc_connector" {
+  description = "The name of the vpc connector needed (only relevant if a static IP is needed)"
+  type        = string
+  default     = ""
 }
