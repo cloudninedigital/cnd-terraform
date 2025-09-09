@@ -1,0 +1,43 @@
+{"main":
+    {%{if trigger_type == "bq" || trigger_type == "gcs"}"params":  ["event"],%{endif}
+    "steps": [%{ for index, crj in cloud_run_jobs ~}
+        {
+        "step_${index}": {
+            "call": "googleapis.run.v1.namespaces.jobs.run",
+            "args": {
+                "name": "namespaces/${project}/jobs/${crj.name}",
+                "location": "${region}",
+                                
+            },
+             "connector_params": {
+            "timeout": 14400,
+            "initial_poll_delay": 1.0,
+            "poll_delay_multiplier": 1.25
+            },
+            "result": "step_${index}_return_value" }
+        }, 
+        {
+            "logStep_${index}_${crj.name}": {
+              "call": "sys.log",
+              "args": {
+                "severity": "INFO",
+                "json": {
+                    "step": "step_${index}",
+                    "job": "${crj.name}",
+                    "output": "$${step_${index}_return_value}",
+                 }
+              }
+            }
+          }
+        %{if trigger_type == "bq" && index == 0}
+        ,{
+        "conditionalSwitch": {
+            "switch": [{
+                "condition": "$${step_${index}_return_value.code == 204 }",
+                "return": "flow halted because source table for flow was not created / inserted (i.e. this might have been the job reference logging instead of the actual table update)" 
+            }]
+            }
+        }%{endif}%{if index < length(cloud_run_jobs) -1},%{endif} %{endfor} 
+    ]        
+} 
+}

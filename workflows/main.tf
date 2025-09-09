@@ -156,10 +156,15 @@ resource "google_workflows_workflow" "workflows_instance" {
     stage          = var.stage,
     dataform_pipelines = var.dataform_pipelines,
     trigger_type   = var.trigger_type
-  }):  templatefile("${path.module}/workflow_templates/workflows_cf_template.tftpl", {
+  }): var.workflow_type == "cloud_run_jobs" ? templatefile("${path.module}/workflow_templates/workflows_crj_template.tftpl", {
     project        = var.project,
     region         = var.functions_region,
     cloudfunctions = var.cloudfunctions,
+    trigger_type   = var.trigger_type
+  }) : templatefile("${path.module}/workflow_templates/workflows_cf_template.tftpl", {
+    project        = var.project,
+    region         = var.cloud_run_jobs_region,
+    cloud_run_jobs = var.cloud_run_jobs,
     trigger_type   = var.trigger_type
   })
 

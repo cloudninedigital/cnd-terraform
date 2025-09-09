@@ -31,6 +31,12 @@ variable "cloudfunctions" {
   default     = [{name: "example_cf", table_updated: "some_dataset.iets"}]
 }
 
+variable "cloud_run_jobs" {
+  description = "list of cloud run jobs maps to execute in the flow"
+  type        = list
+  default     = [{name: "example_crj", table_updated: "some_dataset.iets"}]
+}
+
 variable "stage" {
   description = "development stage to be used"
   type        = string
@@ -75,6 +81,12 @@ variable "region" {
 
 variable "functions_region" {
   description = "Region where Cloud functions are deployed."
+  type = string
+  default     = "europe-west3"
+}
+
+variable "cloud_run_jobs_region" {
+  description = "Region where Cloud run jobs are deployed."
   type = string
   default     = "europe-west3"
 }
