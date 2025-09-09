@@ -7,7 +7,20 @@
             "args": {
                 "name": "namespaces/${project}/jobs/${crj.name}",
                 "location": "${region}",
-                                
+                 "body": {
+                    "overrides": {
+                        "containerOverrides": {
+                        "env": [
+                            %{ for index, env in crj.env_variables ~}
+                            {
+                            "name": "${env.key}",
+                            "value": "${env.value}"
+                            },
+                            %{endfor}
+                        ]
+                        }
+                    }
+                }               
             },
              "connector_params": {
             "timeout": 14400,
