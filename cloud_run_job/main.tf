@@ -141,6 +141,13 @@ resource "google_cloud_run_v2_job" "default" {
       service_account = google_service_account.account.email
       containers {
         image = var.image
+      dynamic env {
+        for_each = var.environment
+        content {   
+        name = env.value.name
+        value = env.value.value
+        }
+      }
         resources {
         limits = {
             cpu    = var.cpu
@@ -154,16 +161,6 @@ resource "google_cloud_run_v2_job" "default" {
       content {
         accelerator = "nvidia-l4"
       }
-      }
-
-      
-
-      dynamic env {
-        for_each = var.environment
-        content {   
-        name = env.value.name
-        value = env.value.value
-        }
       }
 
       dynamic vpc_access{
