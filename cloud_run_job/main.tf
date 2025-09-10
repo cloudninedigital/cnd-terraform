@@ -170,7 +170,7 @@ resource "google_cloud_run_v2_job" "default" {
       }
 
 
-      gpu_zonal_redundancy_disabled = true
+      gpu_zonal_redundancy_disabled = var.enable_gpu ? true : null
     }
   }
 }

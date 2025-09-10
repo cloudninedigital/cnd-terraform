@@ -15,7 +15,7 @@
                             {
                             "name": "${env.key}",
                             "value": "${env.value}"
-                            },
+                            }%{if index < length(cloud_run_jobs) -1},%{endif}
                             %{endfor}
                         ]
                         }
