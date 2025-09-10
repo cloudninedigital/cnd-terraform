@@ -1,10 +1,3 @@
-resource "google_project_service" "run" {
-  provider           = google-beta
-  project            = var.project
-  service            = "run.googleapis.com"
-  disable_on_destroy = false
-}
-
 ## Own service account that creates and runs the cloud run instance
 resource "google_service_account" "account" {
   project            = var.project
