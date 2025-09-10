@@ -18,13 +18,11 @@ resource "google_project_service" "cloud_functions_api" {
 }
 
 resource "google_project_service" "run" {
-  # provider           = google-beta
   service            = "run.googleapis.com"
   disable_on_destroy = false
 }
 
 resource "google_project_service" "eventarc" {
-  # provider           = google-beta
   service            = "eventarc.googleapis.com"
   disable_on_destroy = false
 }

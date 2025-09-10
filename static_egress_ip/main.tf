@@ -41,7 +41,6 @@ resource "google_vpc_access_connector" "connector" {
   ip_cidr_range = var.connector_ip_range
   network       = google_compute_network.net.name
   min_instances = var.min_instances
-  max_instances = var.max_instances
   max_throughput = 1000
   region = var.region
   project= var.project
