@@ -52,6 +52,13 @@ resource "google_project_iam_member" "dataform_executor" {
   member   = "serviceAccount:${google_service_account.workflows_service_account.email}"
 }
 
+resource "google_project_iam_member" "cloud_run_jobs_executor_with_overrides" {
+  count = var.workflow_type == "cloud_run_jobs" ? 1 : 0
+  project  = var.project
+  role     = "roles/run.jobsExecutorWithOverrides"
+  member   = "serviceAccount:${google_service_account.workflows_service_account.email}"
+}
+
 resource "google_project_iam_member" "pubsub_publisher" {
   count = var.trigger_type == "gcs" ? 1 : 0
   project  = var.project
