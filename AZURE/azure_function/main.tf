@@ -23,10 +23,12 @@ resource "azurerm_linux_function_app" "example" {
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
-  site_config {
-    application_stack {
-      python_version = var.python_version
-    }
+    site_config {
+    linux_fx_version = "PYTHON|${var.python_version}"  # Dynamically set Python version here
+  }
+
+  app_settings = {
+    FUNCTIONS_WORKER_RUNTIME = "python"  # Specify Python as the runtime
   }
 }
 
