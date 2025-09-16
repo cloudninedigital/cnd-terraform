@@ -1,8 +1,8 @@
-# Required provider configuration
-provider "google" {
-  project = var.project
-  region  = var.region
-}
+# Required provider configuration - legacy block
+# provider "google" {
+#   project = var.project
+#   region  = var.region
+# }
 
 # provider "google-beta" {
 #   project = var.project
