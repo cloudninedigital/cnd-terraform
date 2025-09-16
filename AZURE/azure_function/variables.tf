@@ -9,10 +9,16 @@ variable "resource_group_location" {
   description = "Location of the resource group."
   type        = string
 }
-variable "source_dir" {
+variable "source_file" {
   description = "Path to the directory containing the function code."
   type        = string
 }
+
+variable "requirements_source_file" {
+  description = "Path to the directory containing the function code."
+  type        = string
+}
+
 variable "python_version" {
   description = "Python version for the Function App (e.g., 3.8, 3.9, 3.10, 3.11, 3.12)."
   type        = string
