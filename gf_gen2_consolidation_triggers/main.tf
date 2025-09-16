@@ -102,7 +102,7 @@ resource "google_project_iam_member" "token_creator_access" {
 
 ## Create and configure service account
 resource "google_service_account" "account" {
-  account_id   = replace("gcf-${var.name}", "_", "-")
+  account_id   = substr(lower(replace("gcf-${var.name}", "_", "-")), 0, 30)
   display_name = "Execution Service Account - used for both the cloud function and eventarc trigger in the test"
 }
 
