@@ -23,12 +23,16 @@ resource "azurerm_linux_function_app" "example" {
   storage_account_name       = azurerm_storage_account.example.name
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
 
-    site_config {
-    linux_fx_version = "PYTHON|${var.python_version}"  # Dynamically set Python version here
+  site_config {
+    # You don't need to specify linux_fx_version manually
+    # Azure will automatically determine the version based on the runtime you provide
+    application_stack {
+      python_version = var.python_version  # Ensure this is correctly set, e.g., "3.8"
+    }
   }
 
   app_settings = {
-    FUNCTIONS_WORKER_RUNTIME = "python"  # Specify Python as the runtime
+    FUNCTIONS_WORKER_RUNTIME = "python"  # Specify that this is a Python function
   }
 }
 

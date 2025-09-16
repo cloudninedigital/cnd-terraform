@@ -22,5 +22,5 @@ variable "requirements_source_file" {
 variable "python_version" {
   description = "Python version for the Function App (e.g., 3.8, 3.9, 3.10, 3.11, 3.12)."
   type        = string
-  default     = "3.12"
+  default     = "3.11"
 }
