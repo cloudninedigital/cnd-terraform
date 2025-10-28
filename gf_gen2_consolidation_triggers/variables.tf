@@ -131,3 +131,15 @@ variable "trigger_type" {
   type        = string
   default     = ""
 }
+
+variable "make_http_endpoint_public" {
+  description = "Whether to make the HTTP endpoint of the Cloud Function public."
+  type        = bool
+  default     = false
+}
+
+variable "max_instance_request_concurrency" {
+  description = "The maximum number of requests that can be handled concurrently by a single instance."
+  type        = number
+  default     = 80
+}
