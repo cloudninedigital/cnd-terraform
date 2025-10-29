@@ -283,7 +283,7 @@ resource "google_cloudfunctions2_function" "bq_function" {
     google_project_service.cloud_functions_api,
     google_project_service.run,
     google_project_service.eventarc,
-    google_project_iam_member.eventarc_event_receiver_service_account,
+    google_project_iam_member.event_receiving, # fix
     google_project_iam_member.logging_log_writer,
     google_project_iam_member.pubsub_subscriber,
     google_project_iam_member.token_creator_access,
@@ -343,7 +343,7 @@ resource "google_cloudfunctions2_function" "gcs_function" {
     google_project_service.cloud_functions_api,
     google_project_service.run,
     google_project_service.eventarc,
-    google_project_iam_member.eventarc_event_receiver_service_account,
+    google_project_iam_member.event_receiving, # fix
     google_project_iam_member.logging_log_writer,
     google_project_iam_member.pubsub_subscriber,
     google_project_iam_member.token_creator_access,
@@ -401,7 +401,7 @@ resource "google_cloudfunctions2_function" "pubsub_function" {
     google_project_service.cloud_functions_api,
     google_project_service.run,
     google_project_service.eventarc,
-    google_project_iam_member.eventarc_event_receiver_service_account,
+    google_project_iam_member.event_receiving, # fix
     google_project_iam_member.logging_log_writer,
     google_project_iam_member.pubsub_subscriber,
     google_project_iam_member.token_creator_access,
