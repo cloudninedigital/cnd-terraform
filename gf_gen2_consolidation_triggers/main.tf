@@ -464,7 +464,20 @@ resource "google_cloudfunctions2_function_iam_member" "public_invoker" {
   location = google_cloudfunctions2_function.http_function[0].location
   role     = "roles/cloudfunctions.invoker"
   member   = "allUsers"  # This grants public access
+  depends_on = [google_cloudfunctions2_function.http_function[0]]
+
 }
+
+resource "google_cloudfunctions2_function_iam_member" "public_invoker" {
+  count = var.make_http_endpoint_public && var.trigger_type == "http" ? 1 : 0
+  cloud_function = google_cloudfunctions2_function.http_function[0].name
+  project = google_cloudfunctions2_function.http_function[0].project
+  location = google_cloudfunctions2_function.http_function[0].location
+  role     = "roles/run.invoker"
+  member   = "allUsers"  # This grants public access
+  depends_on = [google_cloudfunctions2_function.http_function[0]]
+}
+
 
 ## alerting policy
 module "alerting_policy" {
