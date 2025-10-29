@@ -457,6 +457,13 @@ resource "google_cloudfunctions2_function" "http_function" {
 
 }
 
+resource "google_cloudfunctions2_function_iam_member" "public_invoker" {
+  count = var.make_http_endpoint_public && var.trigger_type == "http" ? 1 : 0
+  cloud_function = google_cloudfunctions2_function.http_function[0].name
+  role     = "roles/cloudfunctions.invoker"
+  member   = "allUsers"  # This grants public access
+}
+
 ## alerting policy
 module "alerting_policy" {
   source = "../alert_policy"

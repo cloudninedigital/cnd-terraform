@@ -28,7 +28,7 @@ variable "trigger_bucket" {
 variable "runtime" {
   description = "Runtime where function is operating."
   type        = string
-  default     = "python39"
+  default     = "python313"
 }
 
 variable "available_memory" {
