@@ -73,13 +73,6 @@ resource "google_project_iam_member" "eventarc_log_reader" {
   member  = "serviceAccount:${google_service_account.account.email}"
 }
 
-resource "google_project_iam_member" "eventarc_event_receiver_service_account" {
-  project = var.project
-  role    = "roles/eventarc.eventReceiver"
-  member  = "serviceAccount:${google_service_account.account.email}"
-  depends_on = [google_project_service.eventarc]
-}
-
 resource "google_project_iam_member" "logging_log_writer" {
   project = var.project
   role    = "roles/logging.logWriter"
