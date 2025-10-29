@@ -70,7 +70,7 @@ variable "entry_point" {
 variable "timeout" {
   description = "Timeout of the Cloud Function."
   type        = number
-  default     = 700
+  default     = 540
 }
 
 variable "instantiate_scheduler" {
