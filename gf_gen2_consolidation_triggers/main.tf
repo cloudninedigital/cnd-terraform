@@ -468,13 +468,13 @@ resource "google_cloudfunctions2_function_iam_member" "public_invoker" {
 
 }
 
-resource "google_cloudfunctions2_function_iam_member" "public_run_invoker" {
+resource "google_cloud_run_service_iam_member" "public_run_invoker" {
   count = var.make_http_endpoint_public && var.trigger_type == "http" ? 1 : 0
-  cloud_function = google_cloudfunctions2_function.http_function[0].name
+  service = google_cloudfunctions2_function.http_function[0].name.replace("_", "-")  # Replace underscores with dashes if needed
   project = google_cloudfunctions2_function.http_function[0].project
   location = google_cloudfunctions2_function.http_function[0].location
   role     = "roles/run.invoker"
-  member   = "allUsers"  # This grants public access
+  member   = "allUsers"  # This grants public access to the Cloud Run service
   depends_on = [google_cloudfunctions2_function.http_function[0]]
 }
 
