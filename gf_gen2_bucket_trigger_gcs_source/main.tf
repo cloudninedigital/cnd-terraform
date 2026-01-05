@@ -185,8 +185,9 @@ resource "google_cloudfunctions2_function" "function" {
 ## alerting policy
 module "alerting_policy" {
   source = "../alert_policy"
+  project =  var.project
   count = var.alert_on_failure ? 1 : 0
   name = "${var.name}-alert-policy"
   filter ="resource.type=\"cloud_run_revision\" severity=ERROR resource.labels.service_name=\"${var.name}-function\""
-  email_addresses = var.alert_email_addresses
+  email_addresses = var.email_addresses
 }

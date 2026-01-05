@@ -60,3 +60,17 @@ variable "timeout" {
   type = number
   default = 540
 }
+
+variable "alert_on_failure" {
+  description = "Enable alerting policy on function failure"
+  type        = bool
+  default     = false
+}
+
+variable "email_addresses" {
+  description = "Map of email addresses to notify on alert"
+  type        = map(string)
+  default     = {
+    cnd_alerts = "alerting@cloudninedigital.nl"
+  }
+}
