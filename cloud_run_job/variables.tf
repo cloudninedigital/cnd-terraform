@@ -112,3 +112,9 @@ variable "parallelism" {
   type        = number
   default     = 5
 }
+
+
+variable "docker_image_version" {
+  description = "Version tag of the docker image"
+  type        = string
+}
