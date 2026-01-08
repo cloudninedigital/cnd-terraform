@@ -129,54 +129,6 @@ resource "google_project_iam_member" "pubsub-publisher" {
   member   = "serviceAccount:${google_service_account.account.email}"
 }
 
-# Old set-up | before 08-01-25  ##
-# resource "google_cloud_run_v2_job" "default" {
-#   name     = var.name
-#   location = var.region
-#   deletion_protection = false
-#   launch_stage = "BETA"
-#   template {
-#     template {
-#       service_account = google_service_account.account.email
-#       containers {
-#         image = var.image
-#       dynamic env {
-#         for_each = var.environment
-#         content {   
-#         name = env.value.name
-#         value = env.value.value
-#         }
-#       }
-#         resources {
-#         limits = {
-#             cpu    = var.cpu
-#             memory = var.memory
-#           }
-#         }
-#       }
-#       timeout = var.timeout_seconds
-#       dynamic "node_selector" {
-#       for_each = var.enable_gpu ? [1] : []
-#       content {
-#         accelerator = "nvidia-l4"
-#       }
-#       }
-
-#       dynamic vpc_access{
-#         for_each = var.vpc_connector == "" ? [] : [1]
-#         content { 
-#         connector = var.vpc_connector
-#         egress = "ALL_TRAFFIC"
-#       }
-#       }
-
-
-#       gpu_zonal_redundancy_disabled = var.enable_gpu ? true : null
-#     }
-#   }
-# }
-
-
 ## New set-up | 08-01-25  ##
 # Cloud Run Job definition (shared)
 resource "google_cloud_run_v2_job" "job" {
@@ -228,7 +180,7 @@ resource "google_cloud_run_v2_job" "job" {
         }
       }
 
-      gpu_zonal_redundancy_disabled = var.enable_gpu ? true : null
+      # gpu_zonal_redundancy_disabled = var.enable_gpu ? true : null
     }
   }
 
@@ -279,84 +231,3 @@ resource "google_cloud_scheduler_job" "trigger" {
 
 ## End New set-up ##
 
-
-### GA4-config set-up ###
-# resource "google_cloud_run_v2_job" "job" {
-#   name     = var.name
-#   location = var.region
-#   project  = var.project
-
-#   template {
-#     task_count  = 1
-#     parallelism = 1
-
-#     template {
-#       timeout = "${var.timeout}s"
-
-#       containers {
-#         image = var.image
-
-#         resources {
-#           limits = {
-#             cpu    = var.cpu_limit
-#             memory = var.memory_limit
-#           }
-#         }
-
-#         dynamic "env" {
-#           for_each = var.environment_variables
-#           content {
-#             name  = env.key
-#             value = env.value
-#           }
-#         }
-#       }
-#     }
-#   }
-
-#   lifecycle {
-#     ignore_changes = [
-#       client,
-#       client_version,
-#     ]
-#   }
-# }
-
-# # Create a service account for the scheduler
-# resource "google_service_account" "scheduler_crs" {
-#   count        = var.instantiate_scheduler ? 1 : 0
-#   account_id   = "${replace(var.name, "_", "-")}-scheduler"
-#   display_name = "Service Account for ${var.name} scheduler"
-#   description  = "Service account used by Cloud Scheduler to trigger ${var.name} Cloud Run job"
-#   project      = var.project
-# }
-
-# # Grant the service account permission to invoke Cloud Run jobs
-# resource "google_project_iam_member" "scheduler_crs_cloudrun_invoker" {
-#   count   = var.instantiate_scheduler ? 1 : 0
-#   project = var.project
-#   role    = "roles/run.invoker"
-#   member  = "serviceAccount:${google_service_account.scheduler_crs[0].email}"
-# }
-
-# # Schedule creation for the Cloud Run job
-# resource "google_cloud_scheduler_job" "trigger" {
-#   count        = var.instantiate_scheduler ? 1 : 0
-#   name         = "${var.name}-scheduler"
-#   description  = "Scheduler for ${var.name}"
-#   schedule     = var.schedule
-#   time_zone    = "Europe/Amsterdam"
-#   region       = var.region
-
-#   http_target {
-#     http_method = "POST"
-#     uri         = "https://${var.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project}/jobs/${var.name}:run"
-#     oauth_token {
-#       service_account_email = google_service_account.scheduler_crs[0].email
-#     }
-#   }
-
-#   depends_on = [
-#     google_project_iam_member.scheduler_crs_cloudrun_invoker
-#   ]
-# }
