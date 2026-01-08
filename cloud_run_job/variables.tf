@@ -70,3 +70,45 @@ variable "vpc_connector" {
   type        = string
   default     = ""
 }
+
+variable "schedule" {
+  description = "Cron schedule for the job"
+  type        = string
+  default     = null
+}
+
+variable "instantiate_scheduler" {
+  description = "Whether to instantiate the Cloud Scheduler job."
+  type        = bool
+  default     = false
+}
+
+variable "environment_variables" {
+  description = "Environment variables for the job"
+  type        = map(string)
+  default     = {}
+}
+
+variable "deletion_protection" {
+  description = "Whether to enable deletion protection for the Cloud Run Job."
+  type        = bool
+  default     = false
+}
+
+variable "launch_stage" {
+  description = "The launch stage of the Cloud Run Job."
+  type        = string
+  default     = "BETA"
+}
+
+variable "task_count" {
+  description = "Number of tasks to run for the job."
+  type        = number
+  default     = 10
+}
+
+variable "parallelism" {
+  description = "Number of tasks to run in parallel."
+  type        = number
+  default     = 5
+}
