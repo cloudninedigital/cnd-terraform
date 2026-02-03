@@ -137,6 +137,7 @@ resource "google_cloud_run_v2_job" "job" {
   project             = var.project
   deletion_protection = var.deletion_protection  # false 
   launch_stage        = var.launch_stage #  "BETA"
+  labels              = var.labels
 
   template {
     task_count  = var.task_count # 1 GA4 set-up

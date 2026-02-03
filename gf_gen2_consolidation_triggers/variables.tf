@@ -131,3 +131,10 @@ variable "trigger_type" {
   type        = string
   default     = ""
 }
+
+
+variable "labels" {
+  description = "Map of labels to apply to supported resources. Merged with default labels (env, project, component, resource)."
+  type        = map(string)
+  default     = {}
+}
