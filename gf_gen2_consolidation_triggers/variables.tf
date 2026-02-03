@@ -137,6 +137,7 @@ variable "labels" {
   description = "Map of labels to apply to supported resources. Merged with default labels (env, project, component, resource)."
   type        = map(string)
   default     = {}
+}
   
 variable "make_http_endpoint_public" {
   description = "Whether to make the HTTP endpoint of the Cloud Function public."
