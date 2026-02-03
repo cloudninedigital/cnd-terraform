@@ -229,6 +229,7 @@ resource "google_cloudfunctions2_function" "bq_function" {
   name        = var.name
   location    = var.region
   description = var.description
+  labels   = var.labels
 
   build_config {
     runtime               = var.runtime
@@ -299,6 +300,7 @@ resource "google_cloudfunctions2_function" "gcs_function" {
   name        = var.name
   location    = var.region
   description = var.description
+  labels   = var.labels
 
   build_config {
     runtime               = var.runtime
@@ -361,6 +363,7 @@ resource "google_cloudfunctions2_function" "pubsub_function" {
   name        = var.name
   location    = var.region
   description = var.description
+  labels      = var.labels
 
   build_config {
     runtime               = var.runtime
@@ -418,7 +421,8 @@ resource "google_cloudfunctions2_function" "http_function" {
   location    = var.region
   description = var.description
   project = var.project
-  
+  labels      = var.labels
+
   build_config {
     runtime     = var.runtime
     entry_point = var.entry_point

@@ -118,3 +118,9 @@ variable "docker_image_version" {
   description = "Version tag of the docker image"
   type        = string
 }
+
+variable "labels" {
+  description = "Map of labels to apply to supported resources. Merged with default labels (env, project, component, resource)."
+  type        = map(string)
+  default     = {}
+}
