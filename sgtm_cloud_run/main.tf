@@ -103,3 +103,18 @@ resource "google_cloud_run_v2_service" "preview_server" {
     depends_on = [ google_secret_manager_secret_iam_member.secret-access ]
 }
 
+resource "google_cloud_run_v2_service_iam_member" "tagging_public" {
+  name     = google_cloud_run_v2_service.tagging_server.name
+  project  = var.project
+  location = var.region
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+resource "google_cloud_run_v2_service_iam_member" "preview_public" {
+  name     = google_cloud_run_v2_service.preview_server.name
+  project  = var.project
+  location = var.region
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}

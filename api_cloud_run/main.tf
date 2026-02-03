@@ -19,6 +19,11 @@ resource "google_project_iam_member" "invoking" {
   member  = "serviceAccount:${google_service_account.account.email}"
 }
 
+resource "google_project_iam_member" "secretManagerSecretAccessor" {
+  project = var.project
+  role     = "roles/secretmanager.secretAccessor" 
+  member   = "serviceAccount:${google_service_account.account.email}" 
+  }
 
 resource "google_project_iam_member" "run_admin" {
   project = var.project

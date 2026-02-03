@@ -438,9 +438,10 @@ resource "google_cloudfunctions2_function" "http_function" {
   service_config {
     max_instance_count = var.max_instances
     min_instance_count = var.min_instances
+    max_instance_request_concurrency = var.max_instance_request_concurrency
     available_memory   = var.available_memory
     timeout_seconds    = var.timeout
-    ingress_settings               = "ALLOW_INTERNAL_ONLY"
+    ingress_settings               = var.make_http_endpoint_public ? "ALLOW_ALL": "ALLOW_INTERNAL_ONLY"
     vpc_connector                  = var.vpc_connector
     vpc_connector_egress_settings  = var.vpc_connector == "" ? "" : "ALL_TRAFFIC"
     environment_variables = var.environment
@@ -452,6 +453,29 @@ resource "google_cloudfunctions2_function" "http_function" {
   google_service_account.account]
 
 }
+
+resource "google_cloudfunctions2_function_iam_member" "public_invoker" {
+  count = var.make_http_endpoint_public && var.trigger_type == "http" ? 1 : 0
+  cloud_function = google_cloudfunctions2_function.http_function[0].name
+  project = google_cloudfunctions2_function.http_function[0].project
+  location = google_cloudfunctions2_function.http_function[0].location
+  role     = "roles/cloudfunctions.invoker"
+  member   = "allUsers"  # This grants public access
+  depends_on = [google_cloudfunctions2_function.http_function[0]]
+
+}
+
+resource "google_cloud_run_service_iam_member" "public_run_invoker" {
+  count = var.make_http_endpoint_public && var.trigger_type == "http" ? 1 : 0
+  service = google_cloudfunctions2_function.http_function[0].name
+
+  project = google_cloudfunctions2_function.http_function[0].project
+  location = google_cloudfunctions2_function.http_function[0].location
+  role     = "roles/run.invoker"
+  member   = "allUsers"  # This grants public access to the Cloud Run service
+  depends_on = [google_cloudfunctions2_function.http_function[0]]
+}
+
 
 ## alerting policy
 module "alerting_policy" {

@@ -28,7 +28,7 @@ variable "trigger_bucket" {
 variable "runtime" {
   description = "Runtime where function is operating."
   type        = string
-  default     = "python39"
+  default     = "python313"
 }
 
 variable "available_memory" {
@@ -137,4 +137,15 @@ variable "labels" {
   description = "Map of labels to apply to supported resources. Merged with default labels (env, project, component, resource)."
   type        = map(string)
   default     = {}
+  
+variable "make_http_endpoint_public" {
+  description = "Whether to make the HTTP endpoint of the Cloud Function public."
+  type        = bool
+  default     = false
+}
+
+variable "max_instance_request_concurrency" {
+  description = "The maximum number of requests that can be handled concurrently by a single instance."
+  type        = number
+  default     = 80
 }
