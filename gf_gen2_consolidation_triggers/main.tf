@@ -85,6 +85,12 @@ resource "google_project_iam_member" "pubsub_subscriber" {
   member  = "serviceAccount:${google_service_account.account.email}"
 }
 
+resource "google_project_iam_member" "pubsub_publisher" {
+  project = var.project
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.account.email}"
+}
+
 resource "google_project_iam_member" "token_creator_access" {
   project = var.project
   role    = "roles/iam.serviceAccountTokenCreator"
