@@ -37,3 +37,21 @@ variable "strip_paths" {
   type = bool
   default = false
 }
+
+variable "use_static_ip" {
+  description = "Whether to attach a single static IP to the load balancer"
+  type        = bool
+  default     = false
+}
+
+variable "static_ip_name" {
+  description = "Optional name for the reserved global static IP"
+  type        = string
+  default     = ""
+}
+
+variable "static_ip_address" {
+  description = "Existing global static IP address to use (leave empty to auto-reserve when use_static_ip=true)"
+  type        = string
+  default     = ""
+}

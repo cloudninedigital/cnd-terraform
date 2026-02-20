@@ -66,12 +66,22 @@ resource "google_compute_target_http_proxy" "http_proxy" {
   url_map = google_compute_url_map.url_map.id
 }
 
+resource "google_compute_global_address" "lb_ip" {
+  count   = var.use_static_ip && var.static_ip_address == "" ? 1 : 0
+  project = var.project
+  name    = var.static_ip_name != "" ? var.static_ip_name : "${var.name}-lb-ip"
+
+  address_type = "EXTERNAL"
+  ip_version   = "IPV4"
+}
+
 resource "google_compute_global_forwarding_rule" "http_forwarding_rule" {
   project = var.project
   name                  = "${var.name}-http-forwarding-rule"
   load_balancing_scheme = "EXTERNAL_MANAGED"
   port_range            = "80"
   target                = google_compute_target_http_proxy.http_proxy.id
+  ip_address            = var.use_static_ip ? (var.static_ip_address != "" ? var.static_ip_address : google_compute_global_address.lb_ip[0].address) : null
 }
 
 resource "google_compute_managed_ssl_certificate" "ssl_cert" {
@@ -95,4 +105,5 @@ resource "google_compute_global_forwarding_rule" "https_forwarding_rule" {
   load_balancing_scheme = "EXTERNAL_MANAGED"
   port_range            = "443"
   target                = google_compute_target_https_proxy.https_proxy.id
+  ip_address            = var.use_static_ip ? (var.static_ip_address != "" ? var.static_ip_address : google_compute_global_address.lb_ip[0].address) : null
 }
