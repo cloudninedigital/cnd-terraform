@@ -108,10 +108,13 @@ resource "google_project_iam_member" "secretAccessor" {
 }
 
 ## Create and upload source zip to special created functions bucket 
-
+# QA
 data "archive_file" "source" {
   type        = "zip"
-  source_dir  = "${path.root}/.."
+  # source_dir  = "${path.root}/.." #legacy
+  source_dir  = var.source_dir
+
+
   output_path = "/tmp/git-function-${local.timestamp}.zip"
 }
 

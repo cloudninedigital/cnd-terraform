@@ -74,3 +74,8 @@ variable "email_addresses" {
     cnd_alerts = "alerting@cloudninedigital.nl"
   }
 }
+
+variable "source_dir" {
+  description = "Path to the directory containing the Cloud Function source code"
+  type        = string
+}
