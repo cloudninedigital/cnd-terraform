@@ -72,7 +72,7 @@ resource "google_compute_global_address" "lb_ip" {
   name    = var.static_ip_name != "" ? var.static_ip_name : "${var.name}-lb-ip"
 
   address_type = "EXTERNAL"
-  ip_version   = "IPV4"
+  ip_version   = var.ip_version
 }
 
 resource "google_compute_global_forwarding_rule" "http_forwarding_rule" {
