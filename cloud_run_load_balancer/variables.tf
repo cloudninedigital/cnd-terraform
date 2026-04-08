@@ -55,3 +55,9 @@ variable "static_ip_address" {
   type        = string
   default     = ""
 }
+
+variable "ip_version" {
+  description = "IP version for the load balancer (IPV4 or IPV6)"
+  type        = string
+  default     = "IPV6"
+}
