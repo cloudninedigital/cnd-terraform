@@ -44,7 +44,7 @@ resource "google_cloud_run_v2_service" "tagging_server" {
         }    
         env {
         name = "PREVIEW_SERVER_URL"
-        value = var.preview_server_url
+        value = var.preview_server_url != "" ? var.preview_server_url : google_cloud_run_v2_service.preview_server.uri
         }              
         resources {
           limits = {

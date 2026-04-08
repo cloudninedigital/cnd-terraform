@@ -22,7 +22,7 @@ variable "container_config_secret_version" {
 }
 
 variable "preview_server_url" {
-  description = "URL of preview server, can only be known after preview server has been created. "
+  description = "Optional override for preview server URL. If empty, the module uses the created preview service URI."
   default = ""
 }
 
