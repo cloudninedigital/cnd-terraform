@@ -180,10 +180,11 @@ resource "google_workflows_workflow" "workflows_instance" {
     trigger_type   = var.trigger_type
   }) : templatefile("${path.module}/workflow_templates/workflows_cf_template.tftpl", {
     project        = var.project,
+    project_number = data.google_project.project.number,
     region         = var.functions_region,
     cloudfunctions = var.cloudfunctions,
     trigger_type   = var.trigger_type
-  })
+})
 
   depends_on = [
     google_project_service.workflows,
