@@ -5,7 +5,7 @@
         "step_${index}": {
             "call": "http.post",
             "args": {
-                "url": "https://${cf.name}-${project_number}.${region}.run.app",
+                "url": "https://${replace(cf.name, "_", "-")}-${project_number}.${region}.run.app",
                 "timeout": 1800.0,
                 %{if (trigger_type == "bq" || trigger_type == "gcs") && index == 0}
                 "body": { 
