@@ -124,3 +124,10 @@ variable "labels" {
   type        = map(string)
   default     = {}
 }
+
+
+variable "max_retries" {
+  description = "Number of retries for the job in case of failure."
+  type        = number
+  default     = 0
+}

@@ -165,6 +165,7 @@ resource "google_workflows_workflow" "workflows_instance" {
   project = var.project
   description     = var.description
   service_account = google_service_account.workflows_service_account.email
+  call_log_level      = var.call_log_level
   deletion_protection = false 
   # Imported main workflow template file
   source_contents = var.workflow_type == "dataform" ? templatefile("${path.module}/workflow_templates/workflows_dataform_template.tftpl", {

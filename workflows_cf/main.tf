@@ -124,6 +124,7 @@ resource "google_workflows_workflow" "workflows_instance" {
   region          = var.region
   description     = var.description
   service_account = google_service_account.workflows_service_account.email
+  call_log_level  = var.call_log_level
   # Imported main workflow template file
   source_contents = templatefile("modules/workflows_cf/workflow_templates/workflows_template.tftpl", {
     project        = var.project,
