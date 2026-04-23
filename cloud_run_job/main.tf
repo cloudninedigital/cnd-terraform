@@ -138,13 +138,14 @@ resource "google_cloud_run_v2_job" "job" {
   deletion_protection = var.deletion_protection  # false 
   launch_stage        = var.launch_stage #  "BETA"
   labels              = var.labels
-
+  
   template {
     task_count  = var.task_count # 1 GA4 set-up
     parallelism = var.parallelism # 1 GA4 set-up
 
     template {
       service_account = google_service_account.account.email
+      max_retries     = var.max_retries # 0
       timeout         = var.timeout_seconds
 
       containers {

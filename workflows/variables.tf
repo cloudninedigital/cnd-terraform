@@ -115,6 +115,12 @@ variable "service_account_name" {
   type        = string
 }
 
+variable "call_log_level" {
+  description = "The log level to use for Cloud Workflow call logging. Valid values: CALL_LOG_LEVEL_UNSPECIFIED, LOG_ALL_CALLS, LOG_ERRORS_ONLY, LOG_NONE."
+  type        = string
+  default     = "LOG_ERRORS_ONLY"
+}
+
 variable "alert_on_failure" {
   description = "The schedule on which to trigger the function."
   type        = bool
