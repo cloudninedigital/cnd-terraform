@@ -61,3 +61,21 @@ variable "ip_version" {
   type        = string
   default     = "IPV6"
 }
+
+variable "enable_dual_stack" {
+  description = "When true, provision an additional forwarding rule set on the opposite IP version (IPV4+IPV6)"
+  type        = bool
+  default     = false
+}
+
+variable "secondary_static_ip_name" {
+  description = "Optional name for the reserved secondary global static IP used when enable_dual_stack=true"
+  type        = string
+  default     = ""
+}
+
+variable "secondary_static_ip_address" {
+  description = "Existing secondary global static IP address to use for dual-stack (leave empty to auto-reserve when use_static_ip=true and enable_dual_stack=true)"
+  type        = string
+  default     = ""
+}
