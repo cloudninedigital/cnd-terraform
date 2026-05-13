@@ -134,7 +134,7 @@ resource "google_compute_global_forwarding_rule" "http_forwarding_rule_secondary
   load_balancing_scheme = "EXTERNAL_MANAGED"
   port_range            = "80"
   target                = google_compute_target_http_proxy.http_proxy.id
-  ip_version            = local.secondary_ip_version
+  ip_version            = var.use_static_ip ? null : local.secondary_ip_version
   ip_address            = var.use_static_ip ? (
     local.requested_secondary_static_ip != "" ? local.requested_secondary_static_ip : google_compute_global_address.lb_ip_secondary[0].address
   ) : null
@@ -147,7 +147,7 @@ resource "google_compute_global_forwarding_rule" "https_forwarding_rule_secondar
   load_balancing_scheme = "EXTERNAL_MANAGED"
   port_range            = "443"
   target                = google_compute_target_https_proxy.https_proxy.id
-  ip_version            = local.secondary_ip_version
+  ip_version            = var.use_static_ip ? null : local.secondary_ip_version
   ip_address            = var.use_static_ip ? (
     local.requested_secondary_static_ip != "" ? local.requested_secondary_static_ip : google_compute_global_address.lb_ip_secondary[0].address
   ) : null
