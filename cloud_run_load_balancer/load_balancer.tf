@@ -1,9 +1,9 @@
 locals {
-  requested_static_ip = trimspace(coalesce(var.static_ip_address, ""))
+  requested_static_ip = trimspace(var.static_ip_address)
   create_static_ip    = var.use_static_ip && local.requested_static_ip == ""
 
   secondary_ip_version        = upper(var.ip_version) == "IPV4" ? "IPV6" : "IPV4"
-  requested_secondary_static_ip = trimspace(coalesce(var.secondary_static_ip_address, ""))
+  requested_secondary_static_ip = trimspace(var.secondary_static_ip_address)
   create_secondary_static_ip  = var.enable_dual_stack && var.use_static_ip && local.requested_secondary_static_ip == ""
 }
 
