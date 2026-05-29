@@ -2,6 +2,12 @@ data "google_project" "project" {
   project_id = var.project
 }
 
+resource "google_project_service" "run_api" {
+  project            = var.project
+  service            = "run.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_secret_manager_secret_iam_member" "secret-access" {
   secret_id = var.container_config_secret_id
   role      = "roles/secretmanager.secretAccessor"
@@ -56,7 +62,10 @@ resource "google_cloud_run_v2_service" "tagging_server" {
       
     }
   }
-  depends_on = [ google_secret_manager_secret_iam_member.secret-access ]
+  depends_on = [
+    google_project_service.run_api,
+    google_secret_manager_secret_iam_member.secret-access
+  ]
 }
 
 resource "google_cloud_run_v2_service" "preview_server" {
@@ -100,7 +109,10 @@ resource "google_cloud_run_v2_service" "preview_server" {
         }       
     }
   }
-    depends_on = [ google_secret_manager_secret_iam_member.secret-access ]
+    depends_on = [
+      google_project_service.run_api,
+      google_secret_manager_secret_iam_member.secret-access
+    ]
 }
 
 resource "google_cloud_run_v2_service_iam_member" "tagging_public" {
