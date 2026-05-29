@@ -18,7 +18,7 @@ variable "container_config_secret_id" {
 
 variable "container_config_secret_version" {
   description = "version of Google Secret manager secret where container configuration ID is stored"
-  default= "1"
+  default= "latest"
 }
 
 variable "preview_server_url" {
