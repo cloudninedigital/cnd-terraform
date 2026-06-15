@@ -13,10 +13,6 @@ data "google_project" "project" {
   project_id = var.project
 }
 
-locals {
-  timestamp = formatdate("YYMMDDhhmmss", timestamp())
-}
-
 ## Dependency APIs that need to be enabled
 resource "google_project_service" "cloud_build_api" {
   project            = var.project
@@ -191,7 +187,7 @@ resource "google_project_iam_member" "secret_accessor" {
 data "archive_file" "source" {
   type        = "zip"
   source_dir  = "${path.root}/.."
-  output_path = "/tmp/git-function-${local.timestamp}.zip"
+  output_path = "/tmp/git-function-${var.name}.zip"
 }
 
 resource "google_storage_bucket" "bucket" {
