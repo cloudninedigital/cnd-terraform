@@ -19,7 +19,7 @@ resource "google_cloud_run_v2_service" "tagging_server" {
   name     = var.tagging_server_name
   location = var.region
   project = var.project
-  ingress = "INGRESS_TRAFFIC_ALL"
+  ingress = var.ingress
 
   template {
     scaling {
@@ -30,6 +30,18 @@ resource "google_cloud_run_v2_service" "tagging_server" {
       image = "gcr.io/cloud-tagging-10302018/gtm-cloud-image:stable"
         ports {
         container_port = var.container_port
+        }
+        dynamic "startup_probe" {
+          for_each = var.enable_startup_probe ? [1] : []
+          content {
+            http_get {
+              path = var.health_check_path
+              port = tonumber(var.container_port)
+            }
+            period_seconds    = var.startup_probe_period_seconds
+            timeout_seconds   = var.startup_probe_timeout_seconds
+            failure_threshold = var.startup_probe_failure_threshold
+          }
         }
         env {
         name = "POLICY_SCRIPT_URL"
@@ -71,7 +83,8 @@ resource "google_cloud_run_v2_service" "tagging_server" {
 resource "google_cloud_run_v2_service" "preview_server" {
   name     = var.preview_server_name
   location = var.region
-  ingress = "INGRESS_TRAFFIC_ALL"
+  project  = var.project
+  ingress  = var.ingress
 
   template {
     scaling {
@@ -82,6 +95,18 @@ resource "google_cloud_run_v2_service" "preview_server" {
       image = "gcr.io/cloud-tagging-10302018/gtm-cloud-image:stable"
         ports {
         container_port = var.container_port
+        }
+        dynamic "startup_probe" {
+          for_each = var.enable_startup_probe ? [1] : []
+          content {
+            http_get {
+              path = var.health_check_path
+              port = tonumber(var.container_port)
+            }
+            period_seconds    = var.startup_probe_period_seconds
+            timeout_seconds   = var.startup_probe_timeout_seconds
+            failure_threshold = var.startup_probe_failure_threshold
+          }
         }
         env {
         name = "RUN_AS_PREVIEW_SERVER"

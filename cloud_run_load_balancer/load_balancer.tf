@@ -5,6 +5,8 @@ locals {
   secondary_ip_version        = upper(var.ip_version) == "IPV4" ? "IPV6" : "IPV4"
   requested_secondary_static_ip = trimspace(var.secondary_static_ip_address)
   create_secondary_static_ip  = var.enable_dual_stack && var.use_static_ip && local.requested_secondary_static_ip == ""
+
+  all_domains = concat([var.domain], [for k, v in var.host_mappings : v.domain])
 }
 
 
@@ -33,11 +35,27 @@ resource "google_compute_backend_service" "backend_services" {
   }
 }
 
-resource "google_compute_health_check" "default" {
-  name = "${var.name}-default-health-check"
-  project = var.project
-  http_health_check {
-    port_specification = "USE_SERVING_PORT"
+resource "google_compute_region_network_endpoint_group" "host_negs" {
+  for_each = var.host_mappings
+
+  name                  = "${var.name}-${each.key}-neg"
+  network_endpoint_type = "SERVERLESS"
+  region                = var.region
+  project               = var.project
+  cloud_run {
+    service = each.value.service_name
+  }
+}
+
+resource "google_compute_backend_service" "host_backends" {
+  for_each = google_compute_region_network_endpoint_group.host_negs
+  project  = var.project
+  name                  = "${var.name}-${each.key}-backend"
+  load_balancing_scheme = "EXTERNAL_MANAGED"
+  protocol              = "HTTP"
+
+  backend {
+    group = each.value.id
   }
 }
 
@@ -47,6 +65,14 @@ resource "google_compute_url_map" "url_map" {
   host_rule {
     hosts        = [var.domain]
     path_matcher = "${var.name}-path-rules"
+  }
+
+  dynamic "host_rule" {
+    for_each = var.host_mappings
+    content {
+      hosts        = [host_rule.value.domain]
+      path_matcher = "${var.name}-${host_rule.key}-host"
+    }
   }
 
   default_service = google_compute_backend_service.backend_services[keys(var.mapping_services)[0]].id
@@ -68,12 +94,31 @@ resource "google_compute_url_map" "url_map" {
     }
   }
 }
+
+  dynamic "path_matcher" {
+    for_each = var.host_mappings
+    content {
+      name            = "${var.name}-${path_matcher.key}-host"
+      default_service = google_compute_backend_service.host_backends[path_matcher.key].id
+    }
+  }
+}
+
+resource "google_compute_url_map" "https_redirect" {
+  count   = var.enable_https_redirect ? 1 : 0
+  name    = "${var.name}-https-redirect"
+  project = var.project
+  default_url_redirect {
+    https_redirect         = true
+    redirect_response_code = "MOVED_PERMANENTLY_DEFAULT"
+    strip_query            = false
+  }
 }
 
 resource "google_compute_target_http_proxy" "http_proxy" {
   project = var.project
   name    = "${var.name}-http-lb-proxy"
-  url_map = google_compute_url_map.url_map.id
+  url_map = var.enable_https_redirect ? google_compute_url_map.https_redirect[0].id : google_compute_url_map.url_map.id
 }
 
 resource "google_compute_global_address" "lb_ip" {
@@ -107,7 +152,7 @@ resource "google_compute_managed_ssl_certificate" "ssl_cert" {
   name = "${var.name}lb-ssl-cert"
   project=var.project
   managed {
-    domains = [var.domain]
+    domains = local.all_domains
   }
 }
 

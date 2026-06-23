@@ -38,6 +38,21 @@ variable "strip_paths" {
   default = false
 }
 
+variable "enable_https_redirect" {
+  description = "When true, port 80 serves a redirect-only URL map that 301-redirects to HTTPS instead of serving content"
+  type        = bool
+  default     = true
+}
+
+variable "host_mappings" {
+  description = "Host-based (subdomain) routing. Each entry gets its own serverless NEG + backend, a host_rule routing all of its paths to that backend, and its domain is added to the managed SSL certificate."
+  type = map(object({
+    domain       = string
+    service_name = string
+  }))
+  default = {}
+}
+
 variable "use_static_ip" {
   description = "Whether to attach a single static IP to the load balancer"
   type        = bool

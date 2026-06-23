@@ -45,3 +45,39 @@ variable "container_port" {
   description = "port to use for container incoming traffic"
   default = "8080"
 }
+
+variable "ingress" {
+  description = "Cloud Run ingress setting. Use INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER to only allow traffic via the load balancer."
+  type        = string
+  default     = "INGRESS_TRAFFIC_ALL"
+}
+
+variable "enable_startup_probe" {
+  description = "When true, replace Cloud Run's default TCP startup probe with an HTTP GET startup probe on health_check_path"
+  type        = bool
+  default     = true
+}
+
+variable "health_check_path" {
+  description = "HTTP path used by the startup probe"
+  type        = string
+  default     = "/healthz"
+}
+
+variable "startup_probe_period_seconds" {
+  description = "How often (in seconds) to perform the startup probe"
+  type        = number
+  default     = 3
+}
+
+variable "startup_probe_timeout_seconds" {
+  description = "Timeout (in seconds) for each startup probe attempt. Must be < startup_probe_period_seconds."
+  type        = number
+  default     = 2
+}
+
+variable "startup_probe_failure_threshold" {
+  description = "Number of consecutive failures before the container is considered failed to start"
+  type        = number
+  default     = 20
+}
