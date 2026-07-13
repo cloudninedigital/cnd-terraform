@@ -156,3 +156,20 @@ variable "pubsub_topic" {
   type        = string
   default     = ""
 }
+
+variable "service_account_id" {
+  description = "Custom account_id for the service account created for the function. Defaults to \"gcf-<name>\" truncated to the 30-character limit; set this when truncation would collide across environments sharing a project."
+  type        = string
+  default     = ""
+
+  validation {
+    condition     = var.service_account_id == "" || can(regex("^[a-z][a-z0-9-]{4,28}[a-z0-9]$", var.service_account_id))
+    error_message = "service_account_id must be 6-30 characters, lowercase letters, digits and hyphens, starting with a letter."
+  }
+}
+
+variable "trigger_region" {
+  description = "Region of the Eventarc trigger for trigger_type = \"pubsub\". Defaults to var.region. Set this when an existing trigger lives in a different region than the function."
+  type        = string
+  default     = ""
+}
