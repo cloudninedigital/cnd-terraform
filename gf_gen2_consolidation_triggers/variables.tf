@@ -150,3 +150,9 @@ variable "max_instance_request_concurrency" {
   type        = number
   default     = 80
 }
+
+variable "pubsub_topic" {
+  description = "ID of an existing Pub/Sub topic to bind the trigger to (only relevant for trigger_type = \"pubsub\"). If empty, the module creates its own <name>_trigger_topic. When set, no topic or scheduler is created by this module."
+  type        = string
+  default     = ""
+}
