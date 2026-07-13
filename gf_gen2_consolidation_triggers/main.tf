@@ -97,7 +97,7 @@ resource "google_project_iam_member" "token_creator_access" {
 
 ## Create and configure service account
 resource "google_service_account" "account" {
-  account_id   = substr(lower(replace("gcf-${var.name}", "_", "-")), 0, 30)
+  account_id   = var.service_account_id != "" ? var.service_account_id : substr(lower(replace("gcf-${var.name}", "_", "-")), 0, 30)
   display_name = "Execution Service Account - used for both the cloud function and eventarc trigger in the test"
 }
 
@@ -410,7 +410,7 @@ resource "google_cloudfunctions2_function" "pubsub_function" {
       event_type   = "google.cloud.pubsub.topic.v1.messagePublished"
       retry_policy = "RETRY_POLICY_DO_NOT_RETRY"
 
-      trigger_region = var.region
+      trigger_region = var.trigger_region != "" ? var.trigger_region : var.region
       pubsub_topic   = local.trigger_topic_id
     }
 
