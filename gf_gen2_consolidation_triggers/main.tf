@@ -202,21 +202,33 @@ resource "google_storage_bucket_object" "archive" {
 }
 
 ## Pub/Sub Topic
+# Created only when no external topic is supplied via var.pubsub_topic.
 resource "google_pubsub_topic" "topic" {
-  name = "${var.name}_trigger_topic"
+  count      = var.pubsub_topic == "" ? 1 : 0
+  name       = "${var.name}_trigger_topic"
   depends_on = [google_project_service.pubsub_api]
+}
+
+# Keep existing deployments (pre-count) in place.
+moved {
+  from = google_pubsub_topic.topic
+  to   = google_pubsub_topic.topic[0]
+}
+
+locals {
+  trigger_topic_id = var.pubsub_topic != "" ? var.pubsub_topic : google_pubsub_topic.topic[0].id
 }
 
 ## Cloud Scheduler Job
 resource "google_cloud_scheduler_job" "job" {
-  count       = var.instantiate_scheduler ? 1 : 0
+  count       = var.instantiate_scheduler && var.pubsub_topic == "" ? 1 : 0
   name        = "${var.name}_scheduler"
   description = "A schedule for triggering the function"
   schedule    = var.schedule
   region      = var.function_region
 
   pubsub_target {
-    topic_name = google_pubsub_topic.topic.id
+    topic_name = google_pubsub_topic.topic[0].id
     data       = base64encode("test")
   }
   depends_on = [
@@ -382,6 +394,7 @@ resource "google_cloudfunctions2_function" "pubsub_function" {
   service_config {
     max_instance_count             = var.max_instances
     min_instance_count             = var.min_instances
+    max_instance_request_concurrency = var.max_instance_request_concurrency
     available_memory               = var.available_memory
     available_cpu                  = var.available_cpu
     timeout_seconds                = var.timeout
@@ -398,7 +411,7 @@ resource "google_cloudfunctions2_function" "pubsub_function" {
       retry_policy = "RETRY_POLICY_DO_NOT_RETRY"
 
       trigger_region = var.region
-      pubsub_topic   = google_pubsub_topic.topic.id
+      pubsub_topic   = local.trigger_topic_id
     }
 
   depends_on = [
