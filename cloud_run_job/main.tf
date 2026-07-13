@@ -1,7 +1,17 @@
+## Service account ids are limited to 30 characters. Ids that fit are kept as-is;
+## longer ones are truncated to 24 characters plus a 6-character hash of the full
+## name, so long names stay unique (e.g. prd/stg variants in the same project).
+locals {
+  runtime_sa_base   = replace("crj-${var.name}", "_", "-")
+  runtime_sa_id     = length(local.runtime_sa_base) <= 30 ? local.runtime_sa_base : "${substr(local.runtime_sa_base, 0, 24)}${substr(md5(local.runtime_sa_base), 0, 6)}"
+  scheduler_sa_base = "${replace(var.name, "_", "-")}-scheduler"
+  scheduler_sa_id   = length(local.scheduler_sa_base) <= 30 ? local.scheduler_sa_base : "${substr(local.scheduler_sa_base, 0, 24)}${substr(md5(local.scheduler_sa_base), 0, 6)}"
+}
+
 ## Own service account that creates and runs the cloud run instance
 resource "google_service_account" "account" {
   project            = var.project
-  account_id   = replace("crj-${var.name}", "_", "-")
+  account_id   = local.runtime_sa_id
   display_name = "Service account - used for executing cloud run implementation"
 }
 
@@ -197,7 +207,7 @@ resource "google_cloud_run_v2_job" "job" {
 # Scheduler resources (created only if instantiate_scheduler is true)
 resource "google_service_account" "scheduler_crs" {
   count        = var.instantiate_scheduler ? 1 : 0
-  account_id   = "${replace(var.name, "_", "-")}-scheduler"
+  account_id   = local.scheduler_sa_id
   display_name = "Service Account for ${var.name} scheduler"
   description  = "Service account used by Cloud Scheduler to trigger ${var.name} Cloud Run job"
   project      = var.project
