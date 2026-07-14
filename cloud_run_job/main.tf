@@ -161,8 +161,10 @@ resource "google_cloud_run_v2_job" "job" {
       containers {
         image = var.image
 
+        # Merge both env variable formats: the environment list(map) and the
+        # environment_variables map, which was previously declared but ignored.
         dynamic "env" {
-          for_each = var.environment
+          for_each = concat(var.environment, [for k, v in var.environment_variables : { name = k, value = v }])
           content {
             name  = env.value.name
             value = env.value.value
