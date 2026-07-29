@@ -107,6 +107,13 @@ resource "google_project_iam_member" "invoking" {
   member  = "serviceAccount:${google_service_account.account.email}"
 }
 
+resource "google_project_iam_member" "workflow_invoking" {
+  project = var.project
+  role    = "roles/workflows.invoker"
+  member  = "serviceAccount:${google_service_account.account.email}"
+}
+
+
 resource "google_project_iam_member" "event_receiving" {
   project = var.project
   role    = "roles/eventarc.eventReceiver"
