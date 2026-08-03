@@ -243,5 +243,18 @@ resource "google_cloud_scheduler_job" "trigger" {
   ]
 }
 
+## alerting policy | Cloud Run Job | 08-01-25 ##
+module "alerting_policy" {
+  source = "../alert_policy"
+  count = var.alert_on_failure ? 1 : 0
+  project = var.project
+  name = "${var.name}-alert-policy"
+  filter = "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"${var.name}\" AND severity=\"ERROR\""
+  email_addresses = var.alert_email_addresses
+}
+
+## cloud run job filter
+
+
 ## End New set-up ##
 

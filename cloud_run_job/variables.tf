@@ -125,3 +125,17 @@ variable "max_retries" {
   type        = number
   default     = 0
 }
+
+variable "alert_on_failure" {
+  description = "The schedule on which to trigger the function."
+  type        = bool
+  default     = false
+}
+
+variable "alert_email_addresses" {
+  description = "email addresses to send notifications to"
+  type = map(string)
+  default = {
+    cnd_alerts = "alerting@cloudninedigital.nl"
+  }
+}
