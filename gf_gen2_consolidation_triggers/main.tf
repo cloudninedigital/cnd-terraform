@@ -353,7 +353,7 @@ resource "google_cloudfunctions2_function" "gcs_function" {
       event_type   = "google.cloud.storage.object.v1.finalized"
       retry_policy = "RETRY_POLICY_DO_NOT_RETRY"
 
-      trigger_region = var.region
+      trigger_region = var.trigger_region != "" ? var.trigger_region : var.region
 
       event_filters {
           attribute = "bucket"

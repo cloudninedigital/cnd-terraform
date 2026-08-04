@@ -169,7 +169,7 @@ variable "service_account_id" {
 }
 
 variable "trigger_region" {
-  description = "Region of the Eventarc trigger for trigger_type = \"pubsub\". Defaults to var.region. Set this when an existing trigger lives in a different region than the function."
+  description = "Region of the Eventarc trigger for trigger_type = \"pubsub\" or \"gcs\". Defaults to var.region. Set this when the trigger needs to live in a different location than the function - e.g. a \"gcs\" trigger must match its trigger_bucket's location (which may be a multi-region like \"eu\" or \"us\"), while the function itself must be deployed to a concrete region."
   type        = string
   default     = ""
 }
