@@ -195,6 +195,7 @@ data "archive_file" "source" {
   type        = "zip"
   source_dir  = "${path.root}/.."
   output_path = "/tmp/git-function-${var.name}.zip"
+  excludes    = [".terraform", ".git"]
 }
 
 resource "google_storage_bucket" "bucket" {
