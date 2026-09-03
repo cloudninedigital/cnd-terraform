@@ -13,6 +13,11 @@ output "job_location" {
   value       = google_cloud_run_v2_job.job.location
 }
 
+output "executor_service_account_email" {
+  description = "Email of the executor service account for the Cloud Run Job"
+  value       = google_service_account.account.email
+}
+
 output "scheduler_service_account_email" {
   description = "Email of the scheduler service account"
   value       = var.instantiate_scheduler ? google_service_account.scheduler_crs[0].email : null
