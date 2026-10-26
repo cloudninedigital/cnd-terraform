@@ -139,6 +139,15 @@ resource "google_project_iam_member" "pubsub-publisher" {
   member   = "serviceAccount:${google_service_account.account.email}"
 }
 
+## Roles the job needs beyond the standard set above, e.g. roles/aiplatform.user
+## for Gemini or roles/dataform.editor to run Dataform. Granted on var.project.
+resource "google_project_iam_member" "additional_roles" {
+  for_each = toset(var.additional_roles)
+  project  = var.project
+  role     = each.value
+  member   = "serviceAccount:${google_service_account.account.email}"
+}
+
 ## New set-up | 08-01-25  ##
 # Cloud Run Job definition (shared)
 resource "google_cloud_run_v2_job" "job" {
@@ -160,6 +169,9 @@ resource "google_cloud_run_v2_job" "job" {
 
       containers {
         image = var.image
+        # null keeps the image's own ENTRYPOINT / CMD, as before these inputs existed.
+        command = var.command
+        args    = var.args
 
         # Merge both env variable formats: the environment list(map) and the
         # environment_variables map, which was previously declared but ignored.

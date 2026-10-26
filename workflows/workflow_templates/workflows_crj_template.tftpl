@@ -1,32 +1,33 @@
 {"main":
-    {%{if trigger_type == "bq" || trigger_type == "gcs"}"params":  ["event"],%{endif}
-    "steps": [%{ for index, crj in cloud_run_jobs ~}
+    {%{if trigger_type == "bq" || trigger_type == "gcs"}"params":  ["event"],%{else}%{if length(runtime_env_from_args) > 0}"params":  ["input"],%{endif}%{endif}
+    "steps": [%{if length(runtime_env_from_args) > 0}
+        {
+        "init": {
+            "assign": [
+                {"runtime_args": "$${default(input, {})}"}
+            ]
+            }
+        },%{endif}%{ for index, crj in cloud_run_jobs ~}
         {
         "step_${index}": {
-            "call": "googleapis.run.v1.namespaces.jobs.run",
+            "call": "googleapis.run.v2.projects.locations.jobs.run",
             "args": {
-                "name": "namespaces/${project}/jobs/${crj.name}",
-                "location": "${region}",
+                "name": "projects/${project}/locations/${region}/jobs/${crj.name}",
                  "body": {
                     "overrides": {
-                        "containerOverrides": {
-                        "env": [
-                            %{ for index, env in crj.env_variables ~}
+                        "containerOverrides": [
                             {
-                            "name": "${env.key}",
-                            "value": "${env.value}"
-                            }%{if index < length(crj.env_variables) -1},%{endif}
-                            %{endfor}
+                            "env": ${jsonencode(concat([for m in runtime_env_from_args : {name = m.env, value = "$${string(default(map.get(runtime_args, \"${m.arg}\"), \"${m.default}\"))}"}], [for env in crj.env_variables : {name = env.key, value = env.value}]))}
+                            }
                         ]
-                        }
                     }
                 },
                 "connector_params": {
                     "timeout": 14400
-                }           
+                }
             },
             "result": "step_${index}_return_value" }
-        }, 
+        },
         {
             "logStep_${index}_${crj.name}": {
               "call": "sys.log",
@@ -34,7 +35,8 @@
                 "severity": "INFO",
                 "json": {
                     "step": "step_${index}",
-                    "job": "${crj.name}",
+                    "job": "${crj.name}",%{if length(runtime_env_from_args) > 0}
+                    "args": "$${runtime_args}",%{endif}
                     "output": "$${step_${index}_return_value}"
                  }
               }
@@ -45,10 +47,10 @@
         "conditionalSwitch": {
             "switch": [{
                 "condition": "$${step_${index}_return_value.code == 204 }",
-                "return": "flow halted because source table for flow was not created / inserted (i.e. this might have been the job reference logging instead of the actual table update)" 
+                "return": "flow halted because source table for flow was not created / inserted (i.e. this might have been the job reference logging instead of the actual table update)"
             }]
             }
-        }%{endif}%{if index < length(cloud_run_jobs) -1},%{endif} %{endfor} 
-    ]        
-} 
+        }%{endif}%{if index < length(cloud_run_jobs) -1},%{endif} %{endfor}
+    ]
+}
 }

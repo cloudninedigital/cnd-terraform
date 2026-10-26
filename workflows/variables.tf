@@ -37,6 +37,22 @@ variable "cloud_run_jobs" {
   default     = [{name: "example_crj", table_updated: "some_dataset.iets"}]
 }
 
+variable "runtime_env_from_args" {
+  description = <<-EOT
+    cloud_run_jobs workflows only: environment variables to set on every job from the
+    workflow's runtime argument, e.g. [{env = "CLIENT_ID", arg = "client_id"}] makes an
+    execution started with {"client_id": "acme"} run each job with CLIENT_ID=acme.
+    When the argument is missing (e.g. a scheduled run) the variable gets `default`.
+    Only supported for http and schedule triggers; bq/gcs triggers receive an event instead.
+  EOT
+  type = list(object({
+    env     = string
+    arg     = string
+    default = optional(string, "")
+  }))
+  default = []
+}
+
 variable "stage" {
   description = "development stage to be used"
   type        = string

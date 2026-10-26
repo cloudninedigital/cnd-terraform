@@ -195,7 +195,7 @@ data "archive_file" "source" {
   type        = "zip"
   source_dir  = "${path.root}/.."
   output_path = "/tmp/git-function-${var.name}.zip"
-  excludes    = [".terraform", ".git"]
+  excludes    = concat([".terraform", ".git"], var.source_excludes)
 }
 
 resource "google_storage_bucket" "bucket" {
@@ -233,6 +233,7 @@ resource "google_cloud_scheduler_job" "job" {
   name        = "${var.name}_scheduler"
   description = "A schedule for triggering the function"
   schedule    = var.schedule
+  time_zone   = var.schedule_time_zone
   region      = var.function_region
 
   pubsub_target {

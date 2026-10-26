@@ -173,3 +173,14 @@ variable "trigger_region" {
   type        = string
   default     = ""
 }
+variable "source_excludes" {
+  description = "Extra paths (relative to the repository root that is zipped as the function source) to leave out of the upload, e.g. [\"privacy-crawler\", \"data\"]. .terraform and .git are always excluded."
+  type        = list(string)
+  default     = []
+}
+
+variable "schedule_time_zone" {
+  description = "Time zone the schedule is read in, e.g. \"Europe/Amsterdam\". Defaults to UTC, Cloud Scheduler's own default."
+  type        = string
+  default     = "Etc/UTC"
+}
