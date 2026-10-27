@@ -24,8 +24,22 @@ module "crj_compliance_monitor" {
 }
 ```
 
-The job's service account gets `roles/dataform.editor` on the Dataform project,
-plus `roles/iam.serviceAccountUser` on `invocation_service_account` when set.
+## Service accounts
+
+Two accounts are involved:
+
+- **The job's account** (from `cloud_run_job`) calls the Dataform API. It gets
+  `roles/dataform.editor` on the Dataform project, and `roles/iam.serviceAccountUser`
+  on the execution account, which strict act-as mode requires to create an invocation.
+- **The execution account** is what Dataform runs the SQL as. Under strict act-as,
+  Dataform's default service agent can no longer run invocations, so:
+  - `invocation_service_account` set: that account is used as is. Its BigQuery
+    access and the Dataform service agent's `serviceAccountTokenCreator` /
+    `serviceAccountUser` grants on it must already be in place.
+  - empty (default): the module creates `df-<name>` with `execution_roles`
+    (`bigquery.dataEditor` + `bigquery.jobUser` on `bigquery_project`) and gives
+    the Dataform service agent both grants on it. The service agent exists once
+    the project has a Dataform repository.
 
 Run it by hand for one client:
 

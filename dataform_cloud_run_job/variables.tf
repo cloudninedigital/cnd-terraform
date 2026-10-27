@@ -80,7 +80,19 @@ variable "full_refresh" {
 }
 
 variable "invocation_service_account" {
-  description = "Service account email the Dataform invocation runs as. Empty: the repository's default."
+  description = "Email of the existing service account the Dataform invocation runs as, in the Dataform project. Its BigQuery access and the Dataform service agent's Token Creator / Service Account User grants on it must already exist; the module only gives the job actAs on it. Empty: the module creates df-<name> with var.execution_roles (Dataform's default service agent cannot run invocations under strict act-as)."
+  type        = string
+  default     = ""
+}
+
+variable "execution_roles" {
+  description = "Project roles for the execution account the module creates (only when invocation_service_account is empty), granted on var.bigquery_project."
+  type        = list(string)
+  default     = ["roles/bigquery.dataEditor", "roles/bigquery.jobUser"]
+}
+
+variable "bigquery_project" {
+  description = "Project the created execution account gets execution_roles in. Empty: the Dataform project."
   type        = string
   default     = ""
 }

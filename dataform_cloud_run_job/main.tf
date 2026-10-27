@@ -21,8 +21,25 @@ locals {
     DATAFORM_INCLUDE_DEPENDENCIES    = tostring(var.include_dependencies)
     DATAFORM_INCLUDE_DEPENDENTS      = tostring(var.include_dependents)
     DATAFORM_FULL_REFRESH            = tostring(var.full_refresh)
-    DATAFORM_SERVICE_ACCOUNT         = var.invocation_service_account
+    DATAFORM_SERVICE_ACCOUNT         = local.invocation_service_account
   }
+
+  # Dataform no longer runs invocations as its default service agent (strict
+  # act-as mode), so without a given account the module creates one.
+  create_execution_account = var.invocation_service_account == ""
+  execution_account_base   = replace("df-${var.name}", "_", "-")
+  execution_account_id     = length(local.execution_account_base) <= 30 ? local.execution_account_base : "${substr(local.execution_account_base, 0, 24)}${substr(md5(local.execution_account_base), 0, 6)}"
+  invocation_service_account = (
+    local.create_execution_account
+    ? google_service_account.execution[0].email
+    : var.invocation_service_account
+  )
+  bigquery_project       = var.bigquery_project != "" ? var.bigquery_project : local.dataform_project
+  dataform_service_agent = "service-${data.google_project.dataform.number}@gcp-sa-dataform.iam.gserviceaccount.com"
+}
+
+data "google_project" "dataform" {
+  project_id = local.dataform_project
 }
 
 module "job" {
@@ -56,10 +73,38 @@ resource "google_project_iam_member" "dataform_editor" {
   member  = "serviceAccount:${module.job.executor_service_account_email}"
 }
 
-# Running an invocation as a custom service account needs actAs on it (strict act-as).
+## The account the Dataform invocation runs as (the "effective service account").
+
+# Created only when var.invocation_service_account is empty. A given account is
+# used as is: its BigQuery access and the Dataform service agent's grants on it
+# are assumed to be in place already.
+resource "google_service_account" "execution" {
+  count        = local.create_execution_account ? 1 : 0
+  project      = local.dataform_project
+  account_id   = local.execution_account_id
+  display_name = "Dataform execution account for ${var.name}"
+}
+
+resource "google_project_iam_member" "execution_roles" {
+  for_each = local.create_execution_account ? toset(var.execution_roles) : toset([])
+  project  = local.bigquery_project
+  role     = each.value
+  member   = "serviceAccount:${google_service_account.execution[0].email}"
+}
+
+# Dataform's service agent impersonates the execution account to run the SQL.
+# The agent exists once the project has a Dataform repository.
+resource "google_service_account_iam_member" "dataform_agent_on_execution" {
+  for_each           = local.create_execution_account ? toset(["roles/iam.serviceAccountTokenCreator", "roles/iam.serviceAccountUser"]) : toset([])
+  service_account_id = google_service_account.execution[0].name
+  role               = each.value
+  member             = "serviceAccount:${local.dataform_service_agent}"
+}
+
+# Strict act-as: whoever creates the invocation (this job) needs actAs on the
+# account it runs as.
 resource "google_service_account_iam_member" "act_as_invocation_account" {
-  count              = var.invocation_service_account == "" ? 0 : 1
-  service_account_id = "projects/${local.dataform_project}/serviceAccounts/${var.invocation_service_account}"
+  service_account_id = "projects/${local.dataform_project}/serviceAccounts/${local.invocation_service_account}"
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${module.job.executor_service_account_email}"
 }

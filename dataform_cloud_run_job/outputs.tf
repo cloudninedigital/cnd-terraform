@@ -8,6 +8,11 @@ output "job_location" {
   value       = module.job.job_location
 }
 
+output "invocation_service_account_email" {
+  description = "Service account the Dataform invocation runs as (given, or created by the module)."
+  value       = local.invocation_service_account
+}
+
 output "executor_service_account_email" {
   description = "Service account the job runs as."
   value       = module.job.executor_service_account_email
