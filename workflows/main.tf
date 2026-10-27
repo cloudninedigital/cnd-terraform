@@ -178,7 +178,8 @@ resource "google_workflows_workflow" "workflows_instance" {
     project        = var.project,
     region         = var.cloud_run_jobs_region,
     cloud_run_jobs = var.cloud_run_jobs,
-    trigger_type   = var.trigger_type
+    trigger_type   = var.trigger_type,
+    runtime_env_from_args = var.runtime_env_from_args
   }) : templatefile("${path.module}/workflow_templates/workflows_cf_template.tftpl", {
     project        = var.project,
     project_number = data.google_project.project.number,
@@ -191,6 +192,13 @@ resource "google_workflows_workflow" "workflows_instance" {
     google_project_service.workflows,
     google_service_account.workflows_service_account
   ]
+
+  lifecycle {
+    precondition {
+      condition     = length(var.runtime_env_from_args) == 0 || (var.workflow_type == "cloud_run_jobs" && contains(["http", "schedule"], var.trigger_type))
+      error_message = "runtime_env_from_args is only supported for cloud_run_jobs workflows with an http or schedule trigger."
+    }
+  }
 }
 
 

@@ -11,6 +11,24 @@ variable "image" {
   description = "URL of docker image"
 }
 
+variable "command" {
+  description = "Container entrypoint override, e.g. [\"python3\", \"-c\"]. null keeps the image's ENTRYPOINT."
+  type        = list(string)
+  default     = null
+}
+
+variable "args" {
+  description = "Container arguments, e.g. [\"parse-cookie-statements\"] to run another command of the same image. null keeps the image's CMD."
+  type        = list(string)
+  default     = null
+}
+
+variable "additional_roles" {
+  description = "Extra project roles for the job's service account on top of the standard set, e.g. [\"roles/aiplatform.user\"]."
+  type        = list(string)
+  default     = []
+}
+
 variable "environment" {
   description = "Environment variables to be forwarded to function."
   type        = list(map(string))
