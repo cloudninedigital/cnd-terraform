@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Airbyte bootstrap (rendered by Terraform). Runs on every boot; idempotent.
+set -euo pipefail
+exec >>/var/log/airbyte-bootstrap.log 2>&1
+echo "=== $(date -Is) airbyte bootstrap start ==="
+
+export HOME=/root
+export DEBIAN_FRONTEND=noninteractive
+ABCTL_VERSION="${abctl_version}"
+INSTALL_ARGS="${install_args}"
+STATE_DIR=/var/lib/airbyte-bootstrap
+MARKER="$STATE_DIR/installed"
+mkdir -p "$STATE_DIR"
+
+export PATH="$PATH:/usr/local/bin:/root/.local/bin"
+
+# --- 1. Docker Engine (official apt repo) ---------------------------------
+if ! command -v docker >/dev/null 2>&1; then
+  echo "Installing Docker Engine"
+  apt-get update -y
+  apt-get install -y ca-certificates curl gnupg
+  . /etc/os-release
+  install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL "https://download.docker.com/linux/$ID/gpg" -o /etc/apt/keyrings/docker.asc
+  chmod a+r /etc/apt/keyrings/docker.asc
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$ID $VERSION_CODENAME stable" \
+    >/etc/apt/sources.list.d/docker.list
+  apt-get update -y
+  apt-get install -y docker-ce docker-ce-cli containerd.io
+fi
+systemctl enable --now docker
+
+# --- 2. abctl --------------------------------------------------------------
+if ! command -v abctl >/dev/null 2>&1; then
+  if [ -z "$ABCTL_VERSION" ]; then
+    echo "Installing latest abctl"
+    curl -LsfS https://get.airbyte.com | bash -
+  else
+    echo "Installing abctl $ABCTL_VERSION"
+    tmp=$(mktemp -d)
+    curl -fsSL -o "$tmp/abctl.tgz" \
+      "https://github.com/airbytehq/abctl/releases/download/$ABCTL_VERSION/abctl-$ABCTL_VERSION-linux-amd64.tar.gz"
+    tar -xzf "$tmp/abctl.tgz" -C "$tmp"
+    install -m 0755 "$(find "$tmp" -type f -name abctl | head -1)" /usr/local/bin/abctl
+    rm -rf "$tmp"
+  fi
+fi
+ABCTL=$(command -v abctl)
+"$ABCTL" version || true
+
+# --- 3. Install once, afterwards just make sure the cluster is running -----
+if [ ! -f "$MARKER" ]; then
+  echo "Running: abctl local install $INSTALL_ARGS"
+  # shellcheck disable=SC2086
+  "$ABCTL" local install $INSTALL_ARGS
+  touch "$MARKER"
+  echo "Airbyte installed. Get credentials with: sudo abctl local credentials"
+else
+  # The kind node container normally restarts with Docker; start it if not.
+  for c in $(docker ps -a --filter "name=airbyte-abctl" --format '{{.Names}}'); do
+    docker start "$c" >/dev/null || true
+  done
+  echo "Airbyte already installed; cluster containers ensured running."
+fi
+
+echo "=== $(date -Is) airbyte bootstrap done ==="
