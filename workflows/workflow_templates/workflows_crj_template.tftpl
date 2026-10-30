@@ -4,8 +4,18 @@
         {
         "init": {
             "assign": [
-                {"runtime_args": "$${default(input, {})}"}
+                {"runtime_args": {}}
             ]
+            }
+        },
+        {
+        "read_input": {
+            "switch": [{
+                "condition": "$${input != null}",
+                "assign": [
+                    {"runtime_args": "$${input}"}
+                ]
+            }]
             }
         },%{endif}%{ for index, crj in cloud_run_jobs ~}
         {
