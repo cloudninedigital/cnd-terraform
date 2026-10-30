@@ -142,6 +142,12 @@ variable "manage_iam" {
   default     = true
 }
 
+variable "grant_sa_user" {
+  description = "Grant iap_members roles/iam.serviceAccountUser on the VM's SA (needed for OS Login SSH by non-Editors). Needs iam.serviceAccounts.setIamPolicy (e.g. Service Account Admin / Security Admin); Project IAM Admin alone is not enough."
+  type        = bool
+  default     = true
+}
+
 variable "grant_os_login" {
   description = "Also grant roles/compute.osAdminLogin (project level) to iap_members so they can SSH."
   type        = bool
@@ -185,4 +191,31 @@ variable "snapshot_start_time" {
 variable "snapshot_retention_days" {
   type    = number
   default = 7
+}
+
+# ---------------------------------------------------------------------------
+# Optional web UI (Cloud Run + IAP on the run.app URL)
+# ---------------------------------------------------------------------------
+variable "enable_web_ui" {
+  description = "Expose the Airbyte UI on a Cloud Run run.app URL behind IAP (Google login). Proxies over the VPC to the VM; VM stays private."
+  type        = bool
+  default     = false
+}
+
+variable "web_ui_members" {
+  description = "Principals allowed through the web UI's Google login. null = same as iap_members."
+  type        = list(string)
+  default     = null
+}
+
+variable "web_ui_source_ranges" {
+  description = "Subnet range(s) Cloud Run Direct VPC egress uses. Empty = subnet_cidr (fine with create_network = true; set explicitly for an existing subnet)."
+  type        = list(string)
+  default     = []
+}
+
+variable "web_ui_image" {
+  description = "Proxy image (nginx, config injected at start)."
+  type        = string
+  default     = "docker.io/library/nginx:1.27-alpine"
 }

@@ -42,3 +42,17 @@ output "manual_iam_commands" {
       "gcloud iam service-accounts add-iam-policy-binding ${google_service_account.airbyte.email} --project=${var.project} --member=${m} --role=roles/iam.serviceAccountUser"],
   ))
 }
+
+output "web_ui_url" {
+  description = "Browser URL (Google login via IAP) when enable_web_ui = true."
+  value       = var.enable_web_ui ? google_cloud_run_v2_service.web_ui[0].uri : null
+}
+
+output "manual_web_ui_iam_commands" {
+  description = "Only when enable_web_ui = true and manage_iam = false."
+  value = var.enable_web_ui && !var.manage_iam ? join("\n", concat(
+    ["gcloud projects add-iam-policy-binding ${var.project} --member=serviceAccount:service-${data.google_project.this[0].number}@gcp-sa-iap.iam.gserviceaccount.com --role=roles/run.invoker --condition=None"],
+    [for m in local.web_ui_members :
+      "gcloud iap web add-iam-policy-binding --project=${var.project} --member=${m} --role=roles/iap.httpsResourceAccessor --region=${var.region} --resource-type=cloud-run --service=${google_cloud_run_v2_service.web_ui[0].name}"],
+  )) : ""
+}

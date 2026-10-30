@@ -67,7 +67,7 @@ resource "google_project_iam_member" "os_login" {
 
 # OS Login users must be able to act as the VM's service account.
 resource "google_service_account_iam_member" "sa_user" {
-  for_each           = var.manage_iam ? toset(local.human_members) : toset([])
+  for_each           = var.manage_iam && var.grant_sa_user ? toset(local.human_members) : toset([])
   service_account_id = google_service_account.airbyte.name
   role               = "roles/iam.serviceAccountUser"
   member             = each.value

@@ -19,6 +19,7 @@ GA4 export instead.
 | BigQuery dataset (optional) | |
 | Snapshot schedule (optional) | Daily, 7-day retention, on the boot disk |
 | IAP IAM | `iap.tunnelResourceAccessor` (+ OS Login) for `iap_members` |
+| Web UI (optional, `enable_web_ui`) | Cloud Run nginx proxy with IAP on its `run.app` URL → Direct VPC egress → VM:8000. Google login for `web_ui_members` (default: `iap_members`) |
 
 ### Permissions needed to apply
 
@@ -56,6 +57,21 @@ gcloud compute ssh airbyte --tunnel-through-iap --command='sudo abctl local cred
 
 In Airbyte, create a **BigQuery** destination with project = the `project` input,
 dataset = `bq_dataset_id`, location = `bq_location`, credentials empty.
+
+## Web UI (`enable_web_ui = true`)
+
+Browser access without DNS or a load balancer: `terraform output -raw web_ui_url`
+gives a `https://<name>-ui-....run.app` URL protected by IAP. A custom domain /
+HTTPS load balancer can be added in front later.
+
+- Users outside the project's Google organization (e.g. consultants) need IAP
+  configured with an **External** OAuth consent screen and a custom OAuth client
+  (console: Security → Identity-Aware Proxy). Users inside the org work as is.
+- The proxy sends `Host: localhost` because abctl's ingress was installed for
+  localhost. If Airbyte redirects to `http://localhost:8000` anywhere, reinstall
+  with `--host <run.app host>`.
+- If granting `roles/run.invoker` to the IAP service agent fails because it
+  doesn't exist yet: `gcloud beta services identity create --service=iap.googleapis.com --project=<project>` and apply again.
 
 ## Operations
 
