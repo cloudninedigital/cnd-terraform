@@ -42,6 +42,12 @@ resource "github_repository_deploy_key" "dataform_deploy_key" {
 }
 
 # Step 4: Store Private Key in GCP Secret Manager
+resource "google_project_service" "secretmanager" {
+  project            = var.project
+  service            = "secretmanager.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_secret_manager_secret" "github_ssh_key" {
   project   = var.project
   secret_id = "dataform-ssh-key-${var.repository_name}"
@@ -49,6 +55,14 @@ resource "google_secret_manager_secret" "github_ssh_key" {
   replication {
     auto {}
   }
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_project_service" "dataform" {
+  project            = var.project
+  service            = "dataform.googleapis.com"
+  disable_on_destroy = false
 }
 
 # The Dataform service agent only exists once the API has been used in the project;
@@ -56,7 +70,7 @@ resource "google_secret_manager_secret" "github_ssh_key" {
 resource "google_project_service_identity" "dataform" {
   provider = google-beta
   project  = var.project
-  service  = "dataform.googleapis.com"
+  service  = google_project_service.dataform.service
 }
 
 # Grant the Dataform Service Account access to read the SSH key secret

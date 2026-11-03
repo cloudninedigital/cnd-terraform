@@ -16,12 +16,10 @@ This module provisions a complete Dataform-to-GitHub SSH setup:
   - Dataform repositories
   - Secret Manager secrets/versions
   - Secret IAM bindings
+  - Enabled APIs (the module enables the Dataform and Secret Manager APIs itself, and leaves them on when destroyed)
 - GitHub permissions to create:
   - Repositories
   - Repository deploy keys
-- Required APIs enabled in the target GCP project:
-  - Dataform API
-  - Secret Manager API
 
 ## Required providers
 
