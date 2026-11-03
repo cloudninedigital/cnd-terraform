@@ -17,6 +17,16 @@ locals {
       listen 8080;
       client_max_body_size 100m;
       location / {
+        # Airbyte's API rejects (403) requests whose Origin isn't the URL it was
+        # installed with (http://localhost:8000). Rewrite the Origin only for
+        # requests coming from this proxy's own public origin; any other site's
+        # Origin is passed through unchanged, so Airbyte keeps blocking it.
+        set $airbyte_origin $http_origin;
+        if ($http_origin = "https://$host") {
+          set $airbyte_origin "http://localhost:8000";
+        }
+        proxy_set_header Origin $airbyte_origin;
+
         proxy_pass http://${google_compute_instance.airbyte.network_interface[0].network_ip}:8000;
         proxy_http_version 1.1;
         # abctl's ingress routes on the host it was installed for (localhost).
