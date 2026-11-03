@@ -28,6 +28,7 @@ This module provisions a complete Dataform-to-GitHub SSH setup:
 This module uses these providers:
 
 - `hashicorp/google`
+- `hashicorp/google-beta` (`google_dataform_repository` is beta only)
 - `integrations/github`
 - `hashicorp/tls`
 
@@ -40,7 +41,11 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 6.0"
+      version = "~> 7.0"
+    }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 7.0"
     }
     github = {
       source  = "integrations/github"
@@ -87,7 +92,9 @@ module "dataform_repository" {
 - `region` (string, required): GCP region for Dataform.
 - `git_default_branch` (string, optional, default: `main`): Default git branch.
 - `schema_suffix` (string, optional, default: `null`): Workspace schema suffix.
-- `github_organization` (string, optional, default: `cloudninedigital`): Kept for compatibility with existing module interface.
+- `existing_github_repository` (string, optional, default: `null`): Name of an existing GitHub repository (in the provider's `owner`) to connect instead of creating one. `repository_name` then only names the Dataform repository and secret. Dataform reads `workflow_settings.yaml` from the repository root; subdirectories are not supported.
+- `service_account` (string, optional, default: `null`): Service account the repository's workflow/release configurations run as (needed under strict act-as). The Dataform service agent needs Service Account Token Creator on it.
+- `github_organization` (string, optional, default: `cloudninedigital`): Unused; the organization comes from the `github` provider's `owner`. Kept for compatibility with existing module interface.
 
 ## Outputs
 
@@ -95,6 +102,12 @@ module "dataform_repository" {
 - `dataform_repository_name`: Short Dataform repository name.
 - `github_repository_url`: SSH clone URL of the GitHub repository.
 - `secret_version_id` (sensitive): Secret Manager version ID holding the SSH private key.
+
+## Notes
+
+- Destroying the module archives the GitHub repository it created instead of deleting it. An existing repository (`existing_github_repository`) is left alone; only its deploy key is removed.
+- With an existing repository, the GitHub token needs admin rights on it to add the deploy key, and the deploy key has write access to the whole repository.
+- The Dataform service agent is created up front (`google_project_service_identity`), so a project where Dataform was never used works on the first apply.
 
 ## Security note
 

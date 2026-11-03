@@ -16,6 +16,18 @@ variable "schema_suffix" {
   default     = null
 }
 
+variable "existing_github_repository" {
+  description = "Name of an existing GitHub repository (in the github provider's owner) to connect instead of creating one. Dataform reads workflow_settings.yaml from its root; subdirectories are not supported. The deploy key needs a token with admin rights on it. Null: a repository named var.repository_name is created."
+  type        = string
+  default     = null
+}
+
+variable "service_account" {
+  description = "Service account (email) the repository's workflow and release configurations run as. The Dataform service agent needs Service Account Token Creator on it. Null: not set."
+  type        = string
+  default     = null
+}
+
 variable "repository_name" {
   description = "The name of the Dataform repository that is being created"
   type        = string

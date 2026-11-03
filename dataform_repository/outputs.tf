@@ -10,7 +10,7 @@ output "dataform_repository_name" {
 
 output "github_repository_url" {
   description = "The SSH clone URL of the created GitHub repository"
-  value       = github_repository.client_dataform.ssh_clone_url
+  value       = local.github_ssh_clone_url
 }
 
 output "secret_version_id" {
