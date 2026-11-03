@@ -48,8 +48,9 @@ data "google_project" "this" {
   project_id = var.project
 }
 
+# iap.googleapis.com is already enabled via local.apis in main.tf.
 resource "google_project_service" "web_ui_apis" {
-  for_each           = var.enable_web_ui && var.enable_apis ? toset(["run.googleapis.com", "iap.googleapis.com"]) : toset([])
+  for_each           = var.enable_web_ui && var.enable_apis ? toset(["run.googleapis.com"]) : toset([])
   project            = var.project
   service            = each.value
   disable_on_destroy = false
