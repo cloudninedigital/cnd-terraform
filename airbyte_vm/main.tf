@@ -77,10 +77,12 @@ resource "google_compute_instance" "airbyte" {
 
   metadata = {
     enable-oslogin = "TRUE"
-    startup-script = templatefile("${path.module}/templates/startup.sh.tftpl", {
+    # Strip CRs: on Windows, git (core.autocrlf) may check the module out with
+    # CRLF line endings, which breaks the shebang on the Linux VM.
+    startup-script = replace(templatefile("${path.module}/templates/startup.sh.tftpl", {
       abctl_version = var.abctl_version
       install_args  = local.install_args
-    })
+    }), "\r", "")
   }
 
   depends_on = [google_compute_router_nat.this]
