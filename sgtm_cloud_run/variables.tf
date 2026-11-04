@@ -16,6 +16,12 @@ variable "container_config_secret_id" {
   default = "SGTM_CONTAINER_CONFIG"
 }
 
+variable "create_container_config_secret" {
+  description = "When true, the module creates the Secret Manager secret container_config_secret_id (empty, without a version). Leave false when the secret already exists. The value is added outside Terraform (gcloud secrets versions add) and must exist before the Cloud Run services are created, so on a first deployment apply the secret first (-target=module.<name>.google_secret_manager_secret.container_config), add the version, then apply the rest. Use one secret ID per workspace when several stages share a project."
+  type        = bool
+  default     = false
+}
+
 variable "container_config_secret_version" {
   description = "version of Google Secret manager secret where container configuration ID is stored"
   default= "latest"
