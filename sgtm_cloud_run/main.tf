@@ -8,10 +8,35 @@ resource "google_project_service" "run_api" {
   disable_on_destroy = false
 }
 
-resource "google_secret_manager_secret_iam_member" "secret-access" {
+resource "google_project_service" "secretmanager_api" {
+  project            = var.project
+  service            = "secretmanager.googleapis.com"
+  disable_on_destroy = false
+}
+
+# Optional: create the (empty) secret that holds the GTM container config.
+# The value (a secret version) is always added outside Terraform, so the config
+# string never ends up in code, tfvars or state. The Cloud Run services need that
+# version before they can start: create the secret first, add the version, then
+# deploy the rest (see the create_container_config_secret description).
+resource "google_secret_manager_secret" "container_config" {
+  count     = var.create_container_config_secret ? 1 : 0
+  project   = var.project
   secret_id = var.container_config_secret_id
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.secretmanager_api]
+}
+
+resource "google_secret_manager_secret_iam_member" "secret-access" {
+  secret_id = var.create_container_config_secret ? google_secret_manager_secret.container_config[0].secret_id : var.container_config_secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+
+  depends_on = [google_project_service.secretmanager_api]
 }
 
 
