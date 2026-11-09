@@ -179,7 +179,8 @@ resource "google_workflows_workflow" "workflows_instance" {
     region         = var.cloud_run_jobs_region,
     cloud_run_jobs = var.cloud_run_jobs,
     trigger_type   = var.trigger_type,
-    runtime_env_from_args = var.runtime_env_from_args
+    runtime_env_from_args = var.runtime_env_from_args,
+    cloud_run_job_timeout_seconds = var.cloud_run_job_timeout_seconds
   }) : templatefile("${path.module}/workflow_templates/workflows_cf_template.tftpl", {
     project        = var.project,
     project_number = data.google_project.project.number,

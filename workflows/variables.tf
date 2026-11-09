@@ -37,6 +37,21 @@ variable "cloud_run_jobs" {
   default     = [{name: "example_crj", table_updated: "some_dataset.iets"}]
 }
 
+variable "cloud_run_job_timeout_seconds" {
+  description = <<-EOT
+    cloud_run_jobs workflows only: how long each job step waits for its job to finish
+    before the workflow fails (the job itself keeps running, and later steps are skipped).
+    Keep it above the longest job's own timeout_seconds plus startup time.
+  EOT
+  type        = number
+  default     = 14400
+
+  validation {
+    condition     = var.cloud_run_job_timeout_seconds > 0 && var.cloud_run_job_timeout_seconds <= 31536000
+    error_message = "cloud_run_job_timeout_seconds must be between 1 and 31536000 (the Workflows connector maximum)."
+  }
+}
+
 variable "runtime_env_from_args" {
   description = <<-EOT
     cloud_run_jobs workflows only: environment variables to set on every job from the
