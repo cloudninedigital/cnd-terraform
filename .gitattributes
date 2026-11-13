@@ -1,0 +1,5 @@
+# Scripts and templates rendered onto Linux hosts must keep LF line endings,
+# also when cloned on Windows with core.autocrlf=true.
+*.sh     text eol=lf
+*.tftpl  text eol=lf
+*.tpl    text eol=lf
